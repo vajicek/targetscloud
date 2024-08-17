@@ -16,10 +16,30 @@ Run dev container.
 make devcontainer
 ```
 
+Run **web application** in dev container
+```bash
+make serve_ng
+```
+
 ### Web application
+Init node
+```bash
+make init
+```
+
 Build **web app**.
 ```bash
-make setup_ng && make build_webapp
+make build_webapp
+```
+
+Build **release docker image**.
+```bash
+make build_release
+```
+
+Run **release docker image**.
+```bash
+make run
 ```
 
 ## List of features
