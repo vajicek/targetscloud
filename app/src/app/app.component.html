@@ -1,0 +1,26 @@
+<main class="main">
+  <div class="content">
+    <div class="label">Trainings</div>
+    <app-target #targetElement></app-target>
+    <div class="list">
+      <table>
+        <thead>
+          <tr>
+            <th>Set</th>
+            <th>x</th>
+            <th>y</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let hit of targetElement.hits">
+            <td>{{ hit.set }}</td>
+            <td>{{ hit.coord.x }}</td>
+            <td>{{ hit.coord.y }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<router-outlet />

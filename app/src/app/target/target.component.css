@@ -1,0 +1,10 @@
+.target {
+	width: 100%;
+	cursor: pointer;
+	pointer-events: all;
+}
+
+.round {
+	stroke-width: 0.1;
+	stroke: black;
+}
