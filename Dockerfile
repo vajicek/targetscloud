@@ -1,25 +1,13 @@
-FROM ubuntu:20.04
+FROM node:18-alpine3.19
 
-# basic ubuntu dependencies
-RUN apt-get update
+EXPOSE 80
 
-RUN apt-get install -y \
-	make \
-	curl \
-	unzip
+WORKDIR /tmp/home
 
-# nodejs
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+COPY app/dist/app ./
+COPY server/package*.json ./
+COPY server/*.js ./
 
-RUN apt install -y nodejs
+RUN npm install
 
-EXPOSE 4200
-
-# user compatibility with host and mounted volumes
-ARG UID
-ARG GID
-
-RUN groupadd -g $GID mygroup
-RUN useradd --uid $UID -g mygroup myuser
-
-USER myuser
+CMD ["node", "app.js"]

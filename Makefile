@@ -24,22 +24,22 @@ init:
 
 build_release:
 	docker build \
-	-f ./Dockerfile-release . \
-	-t targetscloud-release
+	-t targetscloud-release \
+	-f ./Dockerfile .
 
 run:
 	docker run \
 	-it \
 	--rm \
 	--name targetscloud \
-	-p 8080:8080 \
+	-p 80:80 \
 	targetscloud-release
 
 build_devcontainer:
 	docker build \
 	--build-arg UID=$(UID) \
 	--build-arg GID=$(GID) \
-	-f ./Dockerfile . \
+	-f ./Dockerfile-devcontainer . \
 	-t targetscloud
 
 devcontainer:
