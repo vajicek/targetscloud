@@ -31,7 +31,7 @@ run:
 	docker run \
 	-it \
 	--rm \
-	--name targetscloud \
+	--name targetscloud-release \
 	-p 80:80 \
 	targetscloud-release
 
@@ -39,16 +39,18 @@ build_devcontainer:
 	docker build \
 	--build-arg UID=$(UID) \
 	--build-arg GID=$(GID) \
-	-f ./Dockerfile-devcontainer . \
-	-t targetscloud
+	--no-cache \
+	-f ./Dockerfile-devcontainer \
+	. \
+	-t targetscloud-devcontainer
 
 devcontainer:
 	docker run \
 	-it \
 	--rm \
-	--name devcontainer \
+	--name targetcloud-devcontainer \
 	-v $(PWD):/tmp/home \
 	-w /tmp/home \
 	-p 4200:4200 \
 	-u $(UID):$(GID) \
-	targetscloud /bin/bash
+	targetscloud-devcontainer /bin/bash
