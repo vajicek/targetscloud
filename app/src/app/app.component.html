@@ -1,30 +1,30 @@
-<main class="main">
-  <div class="content">
-    <nav>
-      <a routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Login</a>
-      <a routerLink="/main" routerLinkActive="active" ariaCurrentWhenActive="page">Main</a>
-      <!-- <a [routerLink]="[{ outlets: { popup: ['compose'] } }]">Contact</a> -->
-    </nav>
-    <!-- <app-target #targetElement></app-target>
-    <div class="list">
-      <table>
-        <thead>
-          <tr>
-            <th>Set</th>
-            <th>x</th>
-            <th>y</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let hit of targetElement.hits">
-            <td>{{ hit.set }}</td>
-            <td>{{ hit.coord.x }}</td>
-            <td>{{ hit.coord.y }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div> -->
-  </div>
-</main>
+<!-- <app-target #targetElement></app-target>
+<div class="list">
+<table>
+<thead>
+<tr>
+<th>Set</th>
+<th>x</th>
+<th>y</th>
+</tr>
+</thead>
+<tbody>
+<tr *ngFor="let hit of targetElement.hits">
+<td>{{ hit.set }}</td>
+<td>{{ hit.coord.x }}</td>
+<td>{{ hit.coord.y }}</td>
+</tr>
+</tbody>
+</table>
+</div> -->
 
 <router-outlet />
+<div class="links">
+<a routerLink="/login" routerLinkActive="active" ariaCurrentWhenActive="page">Login</a>
+<a routerLink="/main" routerLinkActive="active" ariaCurrentWhenActive="page">Main</a>
+<a routerLink="/trainings" routerLinkActive="active" ariaCurrentWhenActive="page">Trainings</a>
+<a routerLink="/newtraining" routerLinkActive="active" ariaCurrentWhenActive="page">New Training</a>
+<a routerLink="/trainingdetail" routerLinkActive="active" ariaCurrentWhenActive="page">Training Detail</a>
+<a routerLink="/settings" routerLinkActive="active" ariaCurrentWhenActive="page">Settings</a>
+<a routerLink="/training" routerLinkActive="active" ariaCurrentWhenActive="page">Training</a>
+</div>

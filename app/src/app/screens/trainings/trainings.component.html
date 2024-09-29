@@ -1,0 +1,28 @@
+<div class="background">
+	<div class="toolbar">
+		<div class="menuicon"></div>
+		<div class="label">Trainings</div>
+		<div class="usericon"></div>
+	</div>
+	<div class="window">
+		<div class="table">
+			<div class="header">
+				<div class="cell">Date/Time</div>
+				<div class="cell">Title/Note</div>
+				<div class="cell">Score</div>
+			</div>
+			<!-- <div class="row" *ngFor="let item in [1,2,3,4,5]">
+				<div class="cell">1/1/2024</div>
+				<div class="cell">xyz</div>
+				<div class="cell">256</div>
+			</div> -->
+			<div *ngFor="let _ of arr"  class="row">
+				<div class="cell">1/1/2024</div>
+				<div class="cell">xyz</div>
+				<div class="cell">256</div>
+			</div>
+		</div>
+		<div class="addbutton">
+		</div>
+	</div>
+</div>
