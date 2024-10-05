@@ -5,7 +5,7 @@ import {
   RouterLinkActive
 } from '@angular/router';
 import { ViewChild, ElementRef } from '@angular/core';
-import { TargetComponent } from './target/target.component';
+import { TargetComponent } from './components/target/target.component';
 import { CommonModule } from '@angular/common';
 
 @Component({

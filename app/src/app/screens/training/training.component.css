@@ -1,0 +1,71 @@
+.targetwrapper {
+	padding: 1em;
+}
+
+.buttons {
+	width: 100%;
+	text-align: center;
+	margin-top: 1em;
+}
+
+.button {
+	background-color: #2C2C2C;
+	color: white;
+
+	display: inline-block;
+	padding: 0.3em 0.3em;
+	margin: 0.2em 0.2em;
+
+	transition-duration: 0.4s;
+
+	font-size: x-large;
+	text-align: center;
+	text-decoration: none;
+
+	cursor: pointer;
+
+	border: 2px solid #04AA6D;
+	border-radius: 10px;
+}
+
+.result {
+	background-color: #04AA6D;
+	color: black;
+
+	display: inline-block;
+	padding: 0em 0em;
+	margin: 0em 0.3em;
+	height: 1.3em;
+	aspect-ratio: 1;
+
+	text-align: center;
+	vertical-align: top;
+	font-size: x-large;
+
+	cursor: pointer;
+
+	border: 2px solid black;
+	border-radius: 50%;
+}
+
+.shevron {
+	background-image: url("../../../assets/shevron.png");
+	background-repeat: no-repeat;
+	background-size: 100%;
+	background-position: center;
+
+	display: inline-block;
+	height: 1.8em;
+	margin: 0em 0.3em;
+	padding: 0em 0em;
+	aspect-ratio: 1;
+}
+
+.points .button {
+	aspect-ratio: 1;
+	width: 1.3em;
+}
+
+.set .button {
+	width: 30%;
+}

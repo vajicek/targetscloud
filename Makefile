@@ -47,6 +47,7 @@ build_devcontainer:
 devcontainer:
 	docker run \
 	-it \
+	--network=host \
 	--rm \
 	--name targetcloud-devcontainer \
 	-v $(PWD):/tmp/home \

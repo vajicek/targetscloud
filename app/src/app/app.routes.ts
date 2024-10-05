@@ -13,7 +13,7 @@ export const routes: Routes = [
 	{ path: 'main', component: MainscreenComponent },
 	{ path: 'trainings', component: TrainingsComponent },
 	{ path: 'newtraining', component: NewtrainingComponent },
-	{ path: 'trainingdetail', component: SettingsComponent },
-	{ path: 'settings', component: TrainingdetailComponent },
+	{ path: 'trainingdetail', component: TrainingdetailComponent },
+	{ path: 'settings', component: SettingsComponent },
 	{ path: 'training', component: TrainingComponent },
 ];
