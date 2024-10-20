@@ -2,6 +2,8 @@
 
 ## Motivation
 
+* [Demo of web app](https://vajicek.github.io/targetscloud)
+
 ## Prerequisites
 
 ## Use devcontainer
