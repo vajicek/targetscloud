@@ -9,6 +9,7 @@ import { TrainingdetailComponent } from './screens/trainingdetail/trainingdetail
 import { TrainingComponent } from './screens/training/training.component';
 
 export const routes: Routes = [
+	{ path: '', redirectTo: '/login', pathMatch: 'full' },
 	{ path: 'login', component: LoginscreenComponent },
 	{ path: 'main', component: MainscreenComponent },
 	{ path: 'trainings', component: TrainingsComponent },
