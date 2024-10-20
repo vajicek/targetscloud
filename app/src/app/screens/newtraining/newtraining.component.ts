@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ToolbarComponent } from '../../components/toolbar/toolbar.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-newtraining',
@@ -9,5 +10,9 @@ import { ToolbarComponent } from '../../components/toolbar/toolbar.component';
   styleUrl: './newtraining.component.css'
 })
 export class NewtrainingComponent {
+  constructor(private router: Router) { }
 
+  onTrainingClick() {
+    this.router.navigate(['/training'])
+  }
 }

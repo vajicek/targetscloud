@@ -12,13 +12,16 @@
 				<div class="cell">xyz</div>
 				<div class="cell">256</div>
 			</div> -->
-			<div *ngFor="let _ of arr"  class="row">
+			<div *ngFor="let _ of arr"  class="row" (click)="onTrainingDetailsClick()">
 				<div class="cell">1/1/2024</div>
 				<div class="cell">xyz</div>
 				<div class="cell">256</div>
 			</div>
 		</div>
-		<div class="addbutton">
+		<!-- <div class="addbutton">
+		</div> -->
+		<div class="buttons set">
+			<div class="add" (click)="onAddClick()"></div>
 		</div>
 	</div>
 </div>
