@@ -17,9 +17,11 @@ export class MainscreenComponent {
   }
 
   onFriendsClick() {
+    this.router.navigate(['/friends'])
   }
 
   onGroupsClick() {
+    this.router.navigate(['/groups'])
   }
 
   onSettingsClick() {

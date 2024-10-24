@@ -7,6 +7,9 @@ import { NewtrainingComponent } from './screens/newtraining/newtraining.componen
 import { SettingsComponent } from './screens/settings/settings.component';
 import { TrainingdetailComponent } from './screens/trainingdetail/trainingdetail.component';
 import { TrainingComponent } from './screens/training/training.component';
+import { GroupsComponent } from './screens/groups/groups.component';
+import { FriendsComponent } from './screens/friends/friends.component';
+import { ChatComponent } from './screens/chat/chat.component';
 
 export const routes: Routes = [
 	{ path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -15,6 +18,9 @@ export const routes: Routes = [
 	{ path: 'trainings', component: TrainingsComponent },
 	{ path: 'newtraining', component: NewtrainingComponent },
 	{ path: 'trainingdetail', component: TrainingdetailComponent },
+	{ path: 'groups', component: GroupsComponent },
+	{ path: 'friends', component: FriendsComponent },
+	{ path: 'chat', component: ChatComponent },
 	{ path: 'settings', component: SettingsComponent },
 	{ path: 'training', component: TrainingComponent },
 ];

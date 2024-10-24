@@ -1,0 +1,90 @@
+.background {
+	background-color: white;
+	height: 100%;
+	overflow: hidden;
+}
+
+.window {
+	border-radius: 25px;
+	border: 2px solid black;
+	padding: 1em;
+	margin: 1em;
+	background-color: #D9D9D9;
+	filter: drop-shadow(0.4em 0.4em 3px #aaaaaa);
+	overflow: hidden;
+}
+
+.image {
+	width: 30%;
+	position: relative;
+	float: left;
+	height: 150px;
+}
+
+.sent_message .image {
+	float: left;
+}
+
+.received_message .image {
+	float: right;
+}
+
+.image img {
+	width: 100%;
+}
+
+.name_message {
+	width: 65%;
+	float: right;
+}
+
+.name {
+	font-size: xx-large;
+	padding-bottom: 0.5em;
+}
+
+.last_message {
+	font-size: large;
+}
+
+.fill {
+	overflow: hidden
+}
+
+.bottom {
+	position: fixed;
+	background-color: #D9D9D9;
+	width: 100%;
+	bottom: 0px;
+}
+
+.bottom .wrapper {
+	margin: 1em;
+	display: inline-block;
+	width: fit-content;
+}
+
+.bottom input {
+	position: relative;
+	font-size: large;
+	padding-right: 1em;
+}
+
+.button {
+	position: relative;
+	right: 0px;
+	background-color: #2C2C2C;
+	color: white;
+	border: 2px solid #04AA6D;
+	padding: 0.5em 1em;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: large;
+	margin: 0.4em 0em;
+	transition-duration: 0.4s;
+	cursor: pointer;
+	border-radius: 10px;
+	margin-left: 1em;
+	margin-right: 1em;
+}
