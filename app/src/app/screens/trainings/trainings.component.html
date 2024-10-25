@@ -7,21 +7,14 @@
 				<div class="cell">Title/Note</div>
 				<div class="cell">Score</div>
 			</div>
-			<!-- <div class="row" *ngFor="let item in [1,2,3,4,5]">
-				<div class="cell">1/1/2024</div>
-				<div class="cell">xyz</div>
-				<div class="cell">256</div>
-			</div> -->
-			<div *ngFor="let _ of arr"  class="row" (click)="onTrainingDetailsClick()">
+			<div *ngFor="let _ of profileService.trainings()"  class="row" (click)="onTrainingDetailsClick()">
 				<div class="cell">1/1/2024</div>
 				<div class="cell">xyz</div>
 				<div class="cell">256</div>
 			</div>
 		</div>
-		<!-- <div class="addbutton">
-		</div> -->
 		<div class="buttons set">
-			<div class="add" (click)="onAddClick()"></div>
+			<div class="icon add" (click)="onAddClick()"></div>
 		</div>
 	</div>
 </div>

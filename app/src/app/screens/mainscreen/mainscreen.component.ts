@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { ProfileService } from "../../services/profile.service";
 
 @Component({
   selector: 'app-mainscreen',
@@ -10,7 +11,8 @@ import { Router } from '@angular/router';
 })
 export class MainscreenComponent {
 
-  constructor(private router: Router) { }
+  constructor(private router: Router,
+              public profileService: ProfileService) { }
 
   onTrainingsClick() {
     this.router.navigate(['/trainings'])

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NgFor } from '@angular/common';
 import { ToolbarComponent } from '../../components/toolbar/toolbar.component';
 import { Router } from '@angular/router';
+import { ProfileService } from "../../services/profile.service";
 
 @Component({
   selector: 'app-trainings',
@@ -11,9 +12,9 @@ import { Router } from '@angular/router';
   styleUrl: './trainings.component.css'
 })
 export class TrainingsComponent {
-  arr = Array(15);
 
-  constructor(private router: Router) { }
+  constructor(private router: Router,
+              public profileService: ProfileService) { }
 
   onTrainingDetailsClick() {
     this.router.navigate(['/trainingdetail'])

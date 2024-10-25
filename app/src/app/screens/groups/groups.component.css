@@ -36,20 +36,5 @@
 }
 
 .add {
-	float: right;
 	background-image: url("../../../assets/add.png");
-	background-repeat: no-repeat;
-	background-size: 30%;
-	background-position: center;
-	background-color: #ECE6F0;
-
-	height: 3em;
-	margin: 0em 0.3em;
-	padding: 0em 0em;
-	aspect-ratio: 1;
-
-	transition-duration: 0.4s;
-	cursor: pointer;
-	border-radius: 30%;
-	filter: drop-shadow(0.2em 0.2em 3px #aaaaaa);
 }
