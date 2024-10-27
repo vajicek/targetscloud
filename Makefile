@@ -13,6 +13,10 @@ build_webapp:
 add_component:
 	cd app && $(NG) generate component $(COMPONENT)
 
+# SERVER BACKEND
+serve_backend:
+	cd server && nodejs ./app.js
+
 # Project setup
 create:
 	npm install @angular/cli
@@ -55,3 +59,19 @@ devcontainer:
 	-p 4200:4200 \
 	-u $(UID):$(GID) \
 	targetscloud-devcontainer /bin/bash
+
+exec_to_devcontainer:
+	docker exec \
+	-it targetcloud-devcontainer \
+	/bin/bash
+
+run_mongo:
+	docker stop mongo || true
+	docker run \
+		-it \
+		--rm \
+		--name mongo \
+		--network host \
+		-e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
+		-e MONGO_INITDB_ROOT_PASSWORD=secret \
+		-d mongo:latest

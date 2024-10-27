@@ -1,20 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 
-class Point {
-  constructor(
-    public x: number = 0,
-    public y: number = 0
-  ) {
-  }
+export interface Hit {
+  dist: number;
+  angle: number;
 }
 
-class Hit {
-  constructor(
-    public set: number = 0,
-    public coord: Point = new Point(0, 0)
-  ) {
-  }
+export interface Set {
+  hits: Array<Hit>;
 }
 
 @Component({
@@ -25,20 +18,39 @@ class Hit {
   styleUrl: './target.component.css'
 })
 export class TargetComponent {
+
   @ViewChild('svgElement') svgElement!: ElementRef<SVGSVGElement>;
 
-  public hits: Array<Hit> = new Array<Hit>();
+  @Input() sets: Array<Set> = [];
+
+  ngAfterViewInit() {
+    this.sets.forEach((set) => {
+      set.hits.forEach((hit) => {
+
+        const x = hit.dist * Math.cos(hit.angle) + 10;
+        const y = hit.dist * Math.sin(hit.angle) + 10;
+
+        let newElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        newElement.setAttribute('fill', 'orange');
+        newElement.setAttribute('x', String(x));
+        newElement.setAttribute('y', String(y));
+        newElement.setAttribute('width', '0.2');
+        newElement.setAttribute('height', '0.2');
+        this.svgElement.nativeElement.appendChild(newElement);
+      });
+    });
+  }
 
   onSvgClick(event: MouseEvent) {
-    const x = event.clientX;
-    const y = event.clientY;
-    const w = this.svgElement.nativeElement.width.baseVal.value;
-    const h = this.svgElement.nativeElement.height.baseVal.value;
+    // const x = event.clientX;
+    // const y = event.clientY;
+    // const w = this.svgElement.nativeElement.width.baseVal.value;
+    // const h = this.svgElement.nativeElement.height.baseVal.value;
 
-    this.hits.push(new Hit(0, new Point(x / w, y / h)));
-    //console.log(event.target);
-    console.log(`this.svgElement.nativeElement.width ${this.svgElement.nativeElement.width.baseVal.value}`);
-    console.log(`this.svgElement.nativeElement.height ${this.svgElement.nativeElement.height.baseVal.value}`);
-    console.log(`Cursor coordinates: (${x}, ${y})`);
+    // this.hits.push(new Hit(0, new Point(x / w, y / h)));
+    // //console.log(event.target);
+    // console.log(`this.svgElement.nativeElement.width ${this.svgElement.nativeElement.width.baseVal.value}`);
+    // console.log(`this.svgElement.nativeElement.height ${this.svgElement.nativeElement.height.baseVal.value}`);
+    // console.log(`Cursor coordinates: (${x}, ${y})`);
   }
 }

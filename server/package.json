@@ -8,9 +8,13 @@
 	"keywords": [
 		"nodejs",
 		"bootstrap",
-		"express"
+		"express",
+		"mongoose",
+		"cors"
 	],
 	"dependencies": {
-		"express": "^4.16.4"
+		"cors": "^2.8.5",
+		"express": "^4.21.1",
+		"mongoose": "^8.7.3"
 	}
 }

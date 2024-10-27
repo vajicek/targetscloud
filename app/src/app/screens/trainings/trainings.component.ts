@@ -16,7 +16,15 @@ export class TrainingsComponent {
   constructor(private router: Router,
               public profileService: ProfileService) { }
 
-  onTrainingDetailsClick() {
+  onTrainingDeleteClick() {
+    this.router.navigate(['/trainingdetail'])
+  }
+
+  onTrainingEditClick(training_index: number) {
+    this.router.navigate(['/training', { training: training_index }])
+  }
+
+  onTrainingShowClick() {
     this.router.navigate(['/trainingdetail'])
   }
 

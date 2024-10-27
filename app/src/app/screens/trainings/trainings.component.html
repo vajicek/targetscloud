@@ -3,17 +3,34 @@
 	<div class="window">
 		<div class="table">
 			<div class="header">
-				<div class="cell">Date/Time</div>
+				<div class="cell datecol">Date/Time</div>
 				<div class="cell">Title/Note</div>
-				<div class="cell">Score</div>
-			</div>
-			<div *ngFor="let _ of profileService.trainings()"  class="row" (click)="onTrainingDetailsClick()">
-				<div class="cell">1/1/2024</div>
-				<div class="cell">xyz</div>
-				<div class="cell">256</div>
+				<div class="cell scorecol">Score</div>
 			</div>
 		</div>
-		<div class="buttons set">
+
+		<div class="tablewrapper">
+			<div *ngFor="let row of profileService.trainings(); index as i">
+				<div class="table">
+					<div class="row">
+						<div class="cell datecol">{{row.date}}</div>
+						<div class="cell">{{row.title}}</div>
+						<div class="cell scorecol">{{row.score}}</div>
+					</div>
+				</div>
+				<div class="table">
+					<div class="buttonsrow">
+						<div class="cell">
+							<div class="button" (click)="onTrainingDeleteClick()">Delete</div>
+							<div class="button" (click)="onTrainingEditClick(i)">Edit</div>
+							<div class="button" (click)="onTrainingShowClick()">Show</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="buttons">
 			<div class="icon add" (click)="onAddClick()"></div>
 		</div>
 	</div>
