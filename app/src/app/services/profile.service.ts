@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 interface Hit {
@@ -27,15 +27,21 @@ export class ProfileService {
 
   private arr: Array<Training> = new Array<Training>();
 
+  private user: any;
+
   constructor(private http: HttpClient) {
-    this.getData().subscribe(
-      (response) => {
-        this.populateFromApiData(response[0]["trainings"])
-      },
-      (error) => {
-        console.error('Error fetching data:', error);
-      }
-    );
+    this.getUser('0')
+      .subscribe({
+        next: (response) => {
+          this.user = response[0]
+          console.log(this.user);
+          this.populateFromApiData(this.user["trainings"])
+          //this.updateUser().subscribe();
+        },
+        error: (error) => {
+          console.error('Error fetching data:', error);
+        }
+      });
   }
 
   private populateFromApiData(trainings: any) {
@@ -90,18 +96,14 @@ export class ProfileService {
     return this.arr;
   }
 
-  getData(): Observable<any> {
-    return this.http.get<any>(this.usersApiUrl);
+  private getUser(id: String): Observable<any> {
+    return this.http.get<any>(this.usersApiUrl + "/" + id);
   }
 
-  // ngOnInit(): void {
-  //   this.getData().subscribe(
-  //     (response) => {
-  //       console.log(response);
-  //     },
-  //     (error) => {
-  //       console.error('Error fetching data:', error);
-  //     }
-  //   );
-  // }
+  private updateUser(): Observable<any> {
+    return this.http.put<any>(
+      this.usersApiUrl + "/" + this.user['id'],
+      this.user,
+      { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) });
+  }
 }
