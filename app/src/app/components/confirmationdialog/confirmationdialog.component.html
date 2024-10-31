@@ -1,0 +1,14 @@
+<div class="overlay" #confirmationDialog>
+	<div class="confirmationDialog dialog">
+		<div class="actions">
+			<div class="message">
+				{{message}}
+			</div>
+		</div>
+		<br />
+		<div class="buttons">
+			<button (click)="onClickYes()">Yes</button>
+			<button (click)="onClickNo()">No</button>
+		</div>
+	</div>
+</div>

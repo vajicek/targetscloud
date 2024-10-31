@@ -15,6 +15,7 @@ export interface Training {
   date?: string;
   title?: string;
   score?: number;
+  id: string;
   sets?: Array<Set>;
 }
 
@@ -25,18 +26,13 @@ export class ProfileService {
 
   private usersApiUrl = 'http://localhost:8000/api/users';
 
-  private arr: Array<Training> = new Array<Training>();
-
   private user: any;
 
   constructor(private http: HttpClient) {
     this.getUser('0')
       .subscribe({
         next: (response) => {
-          this.user = response[0]
-          console.log(this.user);
-          this.populateFromApiData(this.user["trainings"])
-          //this.updateUser().subscribe();
+          this.user = response[0];
         },
         error: (error) => {
           console.error('Error fetching data:', error);
@@ -44,9 +40,15 @@ export class ProfileService {
       });
   }
 
-  private populateFromApiData(trainings: any) {
-    for (const training_key in trainings) {
-      const sets = trainings[training_key]["sets"];
+  public trainings(): Array<Training> {
+    if (this.user == undefined) {
+      return new Array<Training>();
+    }
+
+    var rerVal: Array<Training> = new Array<Training>();
+    var user_trainings = this.user["trainings"];
+    for (const training_key in user_trainings) {
+      const sets = user_trainings[training_key]["sets"];
       var sets_arr = new Array<Set>();
       for (const set_key in sets) {
         const hits = sets[set_key]["hits"];
@@ -60,44 +62,26 @@ export class ProfileService {
         }
         sets_arr.push({ hits: hits_arr });
       }
-      this.arr.push({
+      rerVal.push({
         date: "1/1/2024",
-        title: trainings[training_key]["title"],
-        score: trainings[training_key]["score"],
+        title: user_trainings[training_key]["title"],
+        score: user_trainings[training_key]["score"],
+        id: user_trainings[training_key]["id"],
         sets: sets
       });
     }
-  }
-
-  private generate() {
-    for (var i = 0; i < 100; i++) {
-      var sets = new Array<Set>();
-      for (var j = 0; j < 10; j++) {
-        var hits = new Array<Hit>();
-        for (var k = 0; k < 3; k++) {
-          hits.push({
-            dist: Math.random() * 10,
-            angle: Math.random() * 6.28
-          });
-        }
-        sets.push({ hits: hits });
-      }
-
-      this.arr.push({
-        date: "1/1/2024",
-        title: "adsfasdf adsfa sdfad",
-        score: 123,
-        sets: sets
-      });
-    }
-  }
-
-  public trainings(): Array<Training> {
-    return this.arr;
+    return rerVal;
   }
 
   private getUser(id: String): Observable<any> {
     return this.http.get<any>(this.usersApiUrl + "/" + id);
+  }
+
+  public deleteTraining(training_id: String): Observable<any> {
+    var index = this.user["trainings"]
+      .findIndex((element: any) => element["id"] == training_id);
+    this.user["trainings"].splice(index, 1);
+    return this.updateUser();
   }
 
   private updateUser(): Observable<any> {

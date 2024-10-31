@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { ViewChild, ElementRef } from '@angular/core';
 
 export interface Hit {
   dist: number;

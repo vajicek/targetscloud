@@ -21,7 +21,7 @@
 				<div class="table">
 					<div class="buttonsrow">
 						<div class="cell">
-							<div class="button" (click)="onTrainingDeleteClick()">Delete</div>
+							<div class="button" (click)="onTrainingDeleteClick(row.id)">Delete</div>
 							<div class="button" (click)="onTrainingEditClick(i)">Edit</div>
 							<div class="button" (click)="onTrainingShowClick()">Show</div>
 						</div>
@@ -35,3 +35,5 @@
 		</div>
 	</div>
 </div>
+
+<app-confirmationdialog></app-confirmationdialog>
