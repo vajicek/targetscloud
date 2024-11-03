@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, from, mergeMap, map } from 'rxjs';
 
-interface Hit {
+export interface Hit {
   dist: number;
   angle: number;
 }
 
-interface Set {
+export interface Set {
   hits: Array<Hit>;
 }
 
@@ -26,68 +26,86 @@ export class ProfileService {
 
   private usersApiUrl = 'http://localhost:8000/api/users';
 
-  private user: any;
+  private user: Observable<any>;
 
   constructor(private http: HttpClient) {
-    this.getUser('0')
-      .subscribe({
-        next: (response) => {
-          this.user = response[0];
-        },
-        error: (error) => {
-          console.error('Error fetching data:', error);
-        }
-      });
+    this.user = this.update();
   }
 
-  public trainings(): Array<Training> {
-    if (this.user == undefined) {
-      return new Array<Training>();
-    }
+  private update(): Observable<any> {
+    return from(new Promise((resolve, reject) => {
+      // TODO: load from server or replace in memory for optimization
+      this.getUser('0')
+        .subscribe({
+          next: (response) => {
+            resolve(response[0]);
+          },
+          error: (error) => {
+            reject(error);
+            console.error('Error fetching data:', error);
+          }
+        });
+    }));
+  }
 
-    var rerVal: Array<Training> = new Array<Training>();
-    var user_trainings = this.user["trainings"];
-    for (const training_key in user_trainings) {
-      const sets = user_trainings[training_key]["sets"];
-      var sets_arr = new Array<Set>();
-      for (const set_key in sets) {
-        const hits = sets[set_key]["hits"];
-        var hits_arr = new Array<Hit>();
-        for (const hit_key in hits) {
-          const hit = hits[hit_key];
-          hits_arr.push({
-            dist: hit["dist"],
-            angle: hits["angle"]
-          });
-        }
-        sets_arr.push({ hits: hits_arr });
-      }
-      rerVal.push({
-        date: "1/1/2024",
-        title: user_trainings[training_key]["title"],
-        score: user_trainings[training_key]["score"],
-        id: user_trainings[training_key]["id"],
-        sets: sets
-      });
-    }
-    return rerVal;
+  public trainings(): Observable<Array<Training>> {
+    return this.user.pipe(map(user =>
+      this.toTrainings(user)));
+  }
+
+  public addHit(trainingNo: number, setNo: number, hit: Hit): Observable<any> {
+    return this.user.pipe(mergeMap(user => {
+      user["trainings"][trainingNo]["sets"][setNo]["hits"].push(hit);
+      return this.storeUser(user);
+    }));
   }
 
   private getUser(id: String): Observable<any> {
     return this.http.get<any>(this.usersApiUrl + "/" + id);
   }
 
-  public deleteTraining(training_id: String): Observable<any> {
-    var index = this.user["trainings"]
-      .findIndex((element: any) => element["id"] == training_id);
-    this.user["trainings"].splice(index, 1);
-    return this.updateUser();
+  public deleteTraining(trainingId: String): Observable<any> {
+    return this.user.pipe(mergeMap(user => {
+      var index = user["trainings"].findIndex((element: any) =>
+        element["id"] == trainingId);
+      user["trainings"].splice(index, 1);
+      return this.storeUser(user);
+    }));
   }
 
-  private updateUser(): Observable<any> {
+  private storeUser(user: any): Observable<any> {
     return this.http.put<any>(
-      this.usersApiUrl + "/" + this.user['id'],
-      this.user,
+      this.usersApiUrl + "/" + user['id'],
+      user,
       { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) });
+  }
+
+  private toTrainings(user: any): Array<Training> {
+    var rerVal: Array<Training> = new Array<Training>();
+    var userTrainings = user["trainings"];
+    for (const trainingKey in userTrainings) {
+      const sets = userTrainings[trainingKey]["sets"];
+      var setsArr = new Array<Set>();
+      for (const setKey in sets) {
+        const hits = sets[setKey]["hits"];
+        var hitsArr = new Array<Hit>();
+        for (const hitKey in hits) {
+          const hit = hits[hitKey];
+          hitsArr.push({
+            dist: hit["dist"],
+            angle: hits["angle"]
+          });
+        }
+        setsArr.push({ hits: hitsArr });
+      }
+      rerVal.push({
+        date: "1/1/2024",
+        title: userTrainings[trainingKey]["title"],
+        score: userTrainings[trainingKey]["score"],
+        id: userTrainings[trainingKey]["id"],
+        sets: sets
+      });
+    }
+    return rerVal;
   }
 }

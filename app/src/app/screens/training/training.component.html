@@ -1,34 +1,37 @@
 <div class="background">
 	<app-toolbar title="Training"></app-toolbar>
 	<div class="targetwrapper">
-		<app-target [sets]="training"></app-target>
+		<app-target	[sets]="training"
+					[currentSet]="currentSet"
+					(targetHitEvent)="targetHitEvent($event)">
+		</app-target>
 	</div>
 	<div class="buttons">
-		<div class="result">9</div>
-		<div class="result">8</div>
-		<div class="result">3</div>
-		<div class="shevron">&nbsp;</div>
+		<div *ngFor="let hit of currentSetHits | async" class="result">
+			{{hit.points}}
+		</div>
+		<div class="shevron" (click)="onDeleteLastHit()">&nbsp;</div>
 	</div>
 	<div class="buttons points">
 		<div>
-			<div class="button">X</div>
-			<div class="button">10</div>
-			<div class="button">9</div>
-			<div class="button">8</div>
-			<div class="button">7</div>
-			<div class="button">6</div>
+			<div class="button" (click)="onAddHit(11)">X</div>
+			<div class="button" (click)="onAddHit(10)">10</div>
+			<div class="button" (click)="onAddHit(9)">9</div>
+			<div class="button" (click)="onAddHit(8)">8</div>
+			<div class="button" (click)="onAddHit(7)">7</div>
+			<div class="button" (click)="onAddHit(6)">6</div>
 		</div>
 		<div>
-			<div class="button">5</div>
-			<div class="button">4</div>
-			<div class="button">3</div>
-			<div class="button">2</div>
-			<div class="button">1</div>
-			<div class="button">M</div>
+			<div class="button" (click)="onAddHit(5)">5</div>
+			<div class="button" (click)="onAddHit(4)">4</div>
+			<div class="button" (click)="onAddHit(3)">3</div>
+			<div class="button" (click)="onAddHit(2)">2</div>
+			<div class="button" (click)="onAddHit(1)">1</div>
+			<div class="button" (click)="onAddHit(0)">M</div>
 		</div>
 	</div>
 	<div class="buttons set">
-		<div class="button">Previous</div>
-		<div class="button">Next</div>
+		<div class="button" (click)="onPrevious()">Previous</div>
+		<div class="button" (click)="onNext()">Next</div>
 	</div>
 </div>

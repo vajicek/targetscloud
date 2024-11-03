@@ -5,6 +5,10 @@
 }
 
 .round {
-	stroke-width: 0.1;
+	stroke-width: 0.06;
 	stroke: black;
+}
+
+.whitestroke {
+	stroke: white;
 }

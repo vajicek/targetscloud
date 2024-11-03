@@ -10,7 +10,7 @@
 		</div>
 
 		<div class="tablewrapper">
-			<div *ngFor="let row of profileService.trainings(); index as i">
+			<div *ngFor="let row of trainings | async; index as i">
 				<div class="table">
 					<div class="row">
 						<div class="cell datecol">{{row.date}}</div>
