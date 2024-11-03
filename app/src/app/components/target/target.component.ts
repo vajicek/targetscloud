@@ -30,29 +30,29 @@ export class TargetComponent {
     this._sets = val;
     this.redraw();
   }
-  get sets(): Observable<Array<Set>> | undefined {
+  get sets(): Observable<Array<Set>> {
     return this._sets;
   }
 
-  _sets?: Observable<Array<Set>>;
+  _sets: Observable<Array<Set>> = new Observable<Array<Set>>();
 
   @Input()
   set currentSet(val: number) {
     this._currentSet = val;
     this.redraw();
   }
-  get currentSet(): number | undefined {
+  get currentSet(): number {
     return this._currentSet;
   }
 
-  _currentSet?: number;
+  _currentSet: number = 0;
 
   ngAfterViewInit() {
     this.redraw();
   }
 
   redraw() {
-    this.sets?.subscribe(sets => {
+    this.sets.subscribe(sets => {
       // remove hits
       var hitsElement = this.svgElement.nativeElement.getElementById("hits");
       while (hitsElement.lastChild) {

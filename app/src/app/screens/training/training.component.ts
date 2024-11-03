@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, map } from 'rxjs';
+import { Observable, map, mergeMap } from 'rxjs';
 
 import { ToolbarComponent } from '../../components/toolbar/toolbar.component';
 import { TargetComponent, Set, Hit } from '../../components/target/target.component';
@@ -16,10 +16,12 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class TrainingComponent {
 
-  public training?: Observable<Array<Set>>;
-  public currentSetHits?: Observable<Array<Hit>>;
+  public training: Observable<Array<Set>> = new Observable<Array<Set>>();
+  public currentSetHits: Observable<Array<Hit>> = new Observable<Array<Hit>>();
   public currentSet: number = -1;
   public trainingNo: number = -1;
+  public setsCount: number = -1;
+  public hitsCount: number = -1;
 
   constructor(private route: ActivatedRoute,
     private profileService: ProfileService) { }
@@ -47,23 +49,36 @@ export class TrainingComponent {
       }));
   }
 
-  private getCurrentSetHits(increment: number): Observable<Array<Hit>> | undefined {
-    return this.training?.pipe(map((sets) => {
-      if (sets == undefined) {
-        return Array<Hit>();
+  private getCurrentSetHits(increment: number): Observable<Array<Hit>> {
+    return this.training.pipe(map((sets) => {
+      // if (sets == undefined) {
+      //   return Array<Hit>();
+      // }
+
+      if (this.currentSet < 0) {
+        this.currentSet = sets.length - 1;
       }
 
-      this.currentSet = this.currentSet < 0 ? sets.length - 1 : this.currentSet;
-
-      if ((this.currentSet + increment) > 0 &&
+      if ((this.currentSet + increment) >= 0 &&
         (this.currentSet + increment) < sets.length) {
         this.currentSet += increment;
       }
+
+      this.setsCount = sets.length;
+      this.hitsCount = sets[this.currentSet].hits.length;
 
       return sets[this.currentSet].hits.map((hit) => {
         return this.toHit(hit);
       });
     }))
+  }
+
+  public hasPrevious(): boolean {
+    return this.currentSet > 0;
+  }
+
+  public hasNext(): boolean {
+    return this.currentSet < this.setsCount - 1 || this.hitsCount > 0;
   }
 
   public onAddHit(points: number) {
@@ -78,13 +93,20 @@ export class TrainingComponent {
   }
 
   public onDeleteLastHit() {
+    this.currentSetHits
+      .pipe(mergeMap(hits =>
+        this.profileService.deleteHit(this.trainingNo, this.currentSet, hits.length-1)))
+      .subscribe(_ => {
+        this.training = this.getTraining();
+        this.currentSetHits = this.getCurrentSetHits(0);
+      });
   }
 
   public targetHitEvent(hit: Hit) {
     this.profileService.addHit(this.trainingNo, this.currentSet, this.fromHit(hit))
       .subscribe(_ => {
         this.training = this.getTraining();
-        this.currentSetHits = this.getCurrentSetHits(1);
+        this.currentSetHits = this.getCurrentSetHits(0);
       });
   }
 

@@ -53,6 +53,13 @@ export class ProfileService {
       this.toTrainings(user)));
   }
 
+  public deleteHit(trainingNo: number, setNo: number, hitNo: number): Observable<any> {
+    return this.user.pipe(mergeMap(user => {
+      user["trainings"][trainingNo]["sets"][setNo]["hits"].splice(hitNo, 1);
+      return this.storeUser(user);
+    }));
+  }
+
   public addHit(trainingNo: number, setNo: number, hit: Hit): Observable<any> {
     return this.user.pipe(mergeMap(user => {
       user["trainings"][trainingNo]["sets"][setNo]["hits"].push(hit);

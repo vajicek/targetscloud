@@ -31,7 +31,11 @@
 		</div>
 	</div>
 	<div class="buttons set">
-		<div class="button" (click)="onPrevious()">Previous</div>
-		<div class="button" (click)="onNext()">Next</div>
+		<div class="button"
+			[class]="hasPrevious() ? 'active' : 'inactive'"
+			(click)="onPrevious()">Previous</div>
+		<div class="button"
+			[class]="hasNext() ? 'active' : 'inactive'"
+			(click)="onNext()">Next</div>
 	</div>
 </div>

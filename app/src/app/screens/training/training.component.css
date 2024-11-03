@@ -28,6 +28,12 @@
 	border-radius: 10px;
 }
 
+.buttons .inactive {
+	color: silver;
+	cursor: not-allowed;
+	background-color: #ccc;
+}
+
 .result {
 	background-color: #04AA6D;
 	color: black;
