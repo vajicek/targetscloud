@@ -72,6 +72,7 @@ export class ProfileService {
   }
 
   private getUser(id: String): Observable<any> {
+    // TODO: Add auth token!
     return this.http.get<any>(this.usersApiUrl + "/" + id);
   }
 

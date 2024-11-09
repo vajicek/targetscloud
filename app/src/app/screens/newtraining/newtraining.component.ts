@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
   templateUrl: './newtraining.component.html',
   styleUrl: './newtraining.component.css'
 })
-export class NewtrainingComponent {
+export class NewTrainingComponent {
   constructor(private router: Router) { }
 
   onTrainingClick() {

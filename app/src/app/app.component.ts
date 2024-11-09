@@ -4,7 +4,6 @@ import {
   RouterLink,
   RouterLinkActive
 } from '@angular/router';
-import { ViewChild, ElementRef } from '@angular/core';
 import { TargetComponent } from './components/target/target.component';
 import { CommonModule } from '@angular/common';
 
@@ -23,7 +22,4 @@ import { CommonModule } from '@angular/common';
 })
 export class AppComponent {
   title = 'app';
-
-  @ViewChild('targetElement') targetElement!: ElementRef<TargetComponent>;
-
 }

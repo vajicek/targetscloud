@@ -9,6 +9,6 @@ import { TargetComponent } from '../../components/target/target.component';
   templateUrl: './trainingdetail.component.html',
   styleUrl: './trainingdetail.component.css'
 })
-export class TrainingdetailComponent {
+export class TrainingDetailComponent {
 
 }

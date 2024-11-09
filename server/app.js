@@ -1,10 +1,12 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { ArgumentParser } = require('argparse');
 
-const userModel = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
 	name: String,
 	id: String,
 	trainings: [{
@@ -32,6 +34,13 @@ const userModel = new mongoose.Schema({
 	groups: [{
 		id: String
 	}]
+});
+
+
+const userAuthSchema = new mongoose.Schema({
+	id: String,
+	username: String,
+	password: String
 });
 
 
@@ -75,15 +84,70 @@ async function updateUser(req, res, usersModel) {
 
 
 function connectToMongo(args) {
-	//  MongoDB Connection
+	// MongoDB Connection
 	mongoose.connect(args.mongodb)
 		.then(() => console.log("Connected to MongoDB"))
 		.catch(err => console.error("MongoDB connection error:", err));
 
 	// MongoDB Models
-	const usersModel = mongoose.model('users', userModel);
+	const usersModel = mongoose.model('users', userSchema);
+	const userAuthsModel = mongoose.model('user_auths', userAuthSchema);
 
-	return {"users": usersModel}
+	return {
+		"users": usersModel,
+		"userAuths": userAuthsModel
+	}
+}
+
+
+const SECRET_KEY = "2c224df86c6df7f7f6ad5ad233e4ac6f5c5e0ade10bbdab4f6b3a48ff0c84400";
+
+
+async function login(req, res, userAuthsModel) {
+	console.info("Logging in");
+
+	const { username, password } = req.body;
+
+	console.info(`Fetching user (username=${username}) authentication details`);
+	const userAuth = await userAuthsModel.find({ username: username })
+		.exec();
+
+	console.info("Validating credentials");
+	if (userAuth.length === 0 ||
+		!(await bcrypt.compare(password, userAuth[0].password))) {
+		msg = 'Access denied. Invalid username or password!';
+		console.error(msg);
+		return res.status(401)
+			.send(msg);
+	}
+
+	console.info("Login successful");
+	const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
+	res.json({ token });
+}
+
+
+function authenticationInterceptor(req, res, next) {
+	const authHeader = req.headers.authorization;
+	const token = authHeader && authHeader.split(' ')[1];
+
+	if (!token) {
+		msg = "Access denied. No token provided.";
+		console.error(msg);
+		return res.status(401)
+			.json({ message: msg });
+	}
+
+	try {
+		const decoded = jwt.verify(token, SECRET_KEY);
+		req.user = decoded;
+		next();
+	} catch (error) {
+		msg = "Access denied. Invalid token."
+		console.error(msg);
+		res.status(403)
+			.json({ message: msg });
+	}
 }
 
 
@@ -98,9 +162,12 @@ function serveApi(args, models) {
 		getUser(req, res, models["users"]));
 	router.put('/api/users/:id', (req, res) =>
 		updateUser(req, res, models["users"]));
+	router.post('/login', (req, res) =>
+		login(req, res, models["userAuths"]));
 
 	// Setup express
 	app.use(cors());
+	app.use('/api', authenticationInterceptor);
 	app.use(bodyParser.json());
 	app.use('/', router);
 	app.listen(args.port, function () {

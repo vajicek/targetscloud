@@ -9,7 +9,7 @@ import { ProfileService } from "../../services/profile.service";
   templateUrl: './mainscreen.component.html',
   styleUrl: './mainscreen.component.css'
 })
-export class MainscreenComponent {
+export class MainScreenComponent {
 
   constructor(private router: Router,
               public profileService: ProfileService) { }

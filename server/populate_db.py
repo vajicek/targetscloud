@@ -2,6 +2,7 @@
 import pymongo
 import logging
 import random
+import bcrypt
 
 def get_mongo_client():
     client = pymongo.MongoClient("localhost",
@@ -60,7 +61,22 @@ def generate_users(users, users_count, trainings_count, sets_count, hits_count):
         })
 
 
+def generate_userAuths(user_auths, users_count):
+    user_auths.drop()
+
+    for user_no in range(users_count):
+        salt = bcrypt.gensalt()
+        user_auths.insert_one({
+            "id": "%s" % user_no,
+            "username": "joe_%s" % user_no,
+            "password": bcrypt.hashpw('test'.encode('utf-8'), salt)
+        })
+
+
 client = get_mongo_client()
 db = get_db(client, "local")
 users = get_collection(db, "users")
+user_auths = get_collection(db, "user_auths")
 generate_users(users, 1, 10, 10, 3)
+generate_userAuths(user_auths, 1)
+
