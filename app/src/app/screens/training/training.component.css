@@ -2,6 +2,21 @@
 	padding: 1em;
 }
 
+.stats {
+	padding: 0.1em 0.0em;
+	height: 1em;
+
+	font-size: large;
+}
+
+.stats .left {
+	float: left;
+}
+
+.stats .right {
+	float: right;
+}
+
 .buttons {
 	width: 100%;
 	text-align: center;

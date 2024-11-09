@@ -98,7 +98,7 @@ export class TargetComponent {
     this.targetHitEvent.emit({
       dist: distance,
       angle: angle,
-      points: 10 - Math.floor(distance)
+      points: Math.max(10 - Math.floor(distance), 0)
     });
   }
 }

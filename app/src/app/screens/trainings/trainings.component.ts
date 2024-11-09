@@ -22,7 +22,7 @@ export class TrainingsComponent {
   constructor(private router: Router,
     public profileService: ProfileService) { }
 
-  public trainings?: Observable<Array<Training>>;
+  public trainings: Observable<Array<Training>> = new Observable<Array<Training>>();
 
   ngOnInit() {
     this.trainings = this.profileService.trainings();

@@ -1,14 +1,18 @@
 <div class="background">
 	<app-toolbar title="Training"></app-toolbar>
+	<div class="stats">
+		<div class="left">Set: {{currentSet + 1}}/{{setsCount}}</div>
+		<div class="right">Points: {{points}}/{{pointsTotal}}</div>
+	</div>
 	<div class="targetwrapper">
-		<app-target	[sets]="training"
+		<app-target	[sets]="targetSets"
 					[currentSet]="currentSet"
 					(targetHitEvent)="targetHitEvent($event)">
 		</app-target>
 	</div>
 	<div class="buttons">
 		<div *ngFor="let hit of currentSetHits | async" class="result">
-			{{hit.points}}
+			{{hit.points <= 0 ? "M" : hit.points}}
 		</div>
 		<div class="shevron" (click)="onDeleteLastHit()">&nbsp;</div>
 	</div>
