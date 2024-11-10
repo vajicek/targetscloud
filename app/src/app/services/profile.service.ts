@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from, mergeMap, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Hit {
   dist: number;
@@ -25,8 +26,7 @@ export interface Training {
   providedIn: 'root'
 })
 export class ProfileService {
-
-  private usersApiUrl = 'http://localhost:8000/api/users';
+  private usersApiUrl = environment.apiUrl + '/api/users';
 
   private user: Observable<any>;
 

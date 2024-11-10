@@ -2,18 +2,19 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class LoginService {
-  private apiUrl = 'http://localhost:8000';
+  private loginUrl = environment.apiUrl + '/login';
 
   constructor(private http: HttpClient, private jwtHelper: JwtHelperService) { }
 
   public login(username: string, password: string): Observable<any> {
     return this.http.post<{ token: string }>(
-      `${this.apiUrl}/login`,
+      `${this.loginUrl}`,
       { username, password });
   }
 

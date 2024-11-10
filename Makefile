@@ -8,7 +8,10 @@ serve_ng:
 
 build_webapp:
 	cd app && $(NG) cache clean
-	cd app && $(NG) build --optimization true --output-hashing none
+	cd app && $(NG) build \
+		--configuration production \
+		--optimization true \
+		--output-hashing none
 
 add_component:
 	cd app && $(NG) generate component $(COMPONENT)
@@ -26,19 +29,22 @@ create:
 init:
 	cd app && npm install @angular/cli
 
+# RELEASE CONTAINER
 build_release:
 	docker build \
 	-t targetscloud-release \
 	-f ./Dockerfile .
 
-run:
+run_release:
 	docker run \
 	-it \
 	--rm \
 	--name targetscloud-release \
+	--network host \
 	-p 80:80 \
-	targetscloud-release
+	targetscloud-release node app.js -p 80
 
+# DEV CONTEINER
 build_devcontainer:
 	docker build \
 	--build-arg UID=$(UID) \

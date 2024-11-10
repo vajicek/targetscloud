@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const { ArgumentParser } = require('argparse');
 const crypto = require('crypto');
+const path = require('path');
 
 
 const userSchema = new mongoose.Schema({
@@ -171,6 +172,8 @@ function serveApi(args, models) {
 		authenticationInterceptor(req, res, next, args.secret) );
 	app.use(bodyParser.json());
 	app.use('/', router);
+	app.use(express.static(path.join(__dirname, 'browser')));
+
 	app.listen(args.port, function () {
 		console.log(`TargetsCloud backend listening on port ${args.port}!`)
 	})
