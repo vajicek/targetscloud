@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { ArgumentParser } = require('argparse');
+const crypto = require('crypto');
+
 
 const userSchema = new mongoose.Schema({
 	name: String,
@@ -100,10 +102,7 @@ function connectToMongo(args) {
 }
 
 
-const SECRET_KEY = "2c224df86c6df7f7f6ad5ad233e4ac6f5c5e0ade10bbdab4f6b3a48ff0c84400";
-
-
-async function login(req, res, userAuthsModel) {
+async function login(req, res, userAuthsModel, secret) {
 	console.info("Logging in");
 
 	const { username, password } = req.body;
@@ -122,12 +121,12 @@ async function login(req, res, userAuthsModel) {
 	}
 
 	console.info("Login successful");
-	const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
+	const token = jwt.sign({ username }, secret, { expiresIn: '1h' });
 	res.json({ token });
 }
 
 
-function authenticationInterceptor(req, res, next) {
+function authenticationInterceptor(req, res, next, secret) {
 	const authHeader = req.headers.authorization;
 	const token = authHeader && authHeader.split(' ')[1];
 
@@ -139,7 +138,7 @@ function authenticationInterceptor(req, res, next) {
 	}
 
 	try {
-		const decoded = jwt.verify(token, SECRET_KEY);
+		const decoded = jwt.verify(token, secret);
 		req.user = decoded;
 		next();
 	} catch (error) {
@@ -163,11 +162,13 @@ function serveApi(args, models) {
 	router.put('/api/users/:id', (req, res) =>
 		updateUser(req, res, models["users"]));
 	router.post('/login', (req, res) =>
-		login(req, res, models["userAuths"]));
+		login(req, res, models["userAuths"], args.secret));
 
 	// Setup express
 	app.use(cors());
-	app.use('/api', authenticationInterceptor);
+
+	app.use('/api', (req, res, next) =>
+		authenticationInterceptor(req, res, next, args.secret) );
 	app.use(bodyParser.json());
 	app.use('/', router);
 	app.listen(args.port, function () {
@@ -181,6 +182,10 @@ function get_args() {
 		description: 'TargetsCloud backend'
 	});
 
+	parser.add_argument('-s', '--secret', {
+		help: 'JWT Secret',
+		default: crypto.randomBytes(32).toString('hex')
+	});
 	parser.add_argument('-p', '--port', {
 		help: 'API port',
 		default: 8000
