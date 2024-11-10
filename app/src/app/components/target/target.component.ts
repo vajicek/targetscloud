@@ -26,15 +26,15 @@ export class TargetComponent {
   @Output() targetHitEvent = new EventEmitter<Hit>();
 
   @Input()
-  set sets(val: Observable<Array<Set>>) {
+  set sets(val: Array<Set>) {
     this._sets = val;
     this.redraw();
   }
-  get sets(): Observable<Array<Set>> {
+  get sets(): Array<Set> {
     return this._sets;
   }
 
-  _sets: Observable<Array<Set>> = new Observable<Array<Set>>();
+  _sets: Array<Set> = new Array<Set>();
 
   @Input()
   set currentSet(val: number) {
@@ -52,33 +52,35 @@ export class TargetComponent {
   }
 
   redraw() {
-    this.sets.subscribe(sets => {
-      // remove hits
-      var hitsElement = this.svgElement.nativeElement.getElementById("hits");
-      while (hitsElement.lastChild) {
-        hitsElement.removeChild(hitsElement.lastChild);
-      }
+    if (this.svgElement == undefined) {
+      return;
+    }
 
-      // add hits
-      sets.forEach((set, setIndex) => {
-        set.hits.forEach((hit, hitIndex) => {
-          const x = hit.dist * Math.cos(hit.angle) + 10;
-          const y = hit.dist * Math.sin(hit.angle) + 10;
+    // remove hits
+    var hitsElement = this.svgElement.nativeElement.getElementById("hits");
+    while (hitsElement.lastChild) {
+      hitsElement.removeChild(hitsElement.lastChild);
+    }
 
-          let newElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          newElement.setAttribute('fill-opacity', String(setIndex / (sets.length - 1)));
-          newElement.setAttribute('cx', String(x));
-          newElement.setAttribute('cy', String(y));
-          newElement.setAttribute('r', '0.4');
+    // add hits
+    this._sets.forEach((set, setIndex) => {
+      set.hits.forEach((hit, hitIndex) => {
+        const x = hit.dist * Math.cos(hit.angle) + 10;
+        const y = hit.dist * Math.sin(hit.angle) + 10;
 
-          if (setIndex == this.currentSet) {
-            newElement.setAttribute('fill', 'green');
-          } else {
-            newElement.setAttribute('fill', 'orange');
-          }
+        let newElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        newElement.setAttribute('fill-opacity', String(setIndex / (this._sets.length - 1)));
+        newElement.setAttribute('cx', String(x));
+        newElement.setAttribute('cy', String(y));
+        newElement.setAttribute('r', '0.4');
 
-          hitsElement.appendChild(newElement);
-        });
+        if (setIndex == this.currentSet) {
+          newElement.setAttribute('fill', 'green');
+        } else {
+          newElement.setAttribute('fill', 'orange');
+        }
+
+        hitsElement.appendChild(newElement);
       });
     });
   }

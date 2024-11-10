@@ -25,15 +25,21 @@ import { ActivatedRoute } from '@angular/router';
 export class TrainingComponent {
 
   // data
-  public training: Observable<Training> = new Observable<Training>();
+  public training: Training = {
+    date: "string",
+    title: "string",
+    score: -10,
+    id: "string",
+    sets: [],
+    setsPerTraining: -1,
+    hitsPerSet: -1,
+  };
 
   // UI
 
-  // target input
-  public targetSets: Observable<Array<Set>> = new Observable<Array<Set>>();
-
   // controls input
-  public currentSetHits: Observable<Array<Hit>> = new Observable<Array<Hit>>();
+  public targetSets: Array<Set> = new Array<Set>();
+  public currentSetHits: Array<Hit> = new Array<Hit>();
   public currentSet: number = -1;
   public trainingNo: number = -1;
   public setsCount: number = -1;
@@ -48,80 +54,73 @@ export class TrainingComponent {
 
   ngOnInit(): void {
     this.trainingNo = Number(this.route.snapshot.paramMap.get('training'));
-
-    this.training = this.getTraining();
-
-    this.targetSets = this.getTargetSets();
-    this.currentSetHits = this.getCurrentSetHits(0);
+    this.getTraining()
+      .subscribe();
   }
 
   private getTraining(): Observable<Training> {
     return this.profileService.trainings()
       .pipe(map((trainings) => {
-        return trainings[this.trainingNo];
+        this.training = trainings[this.trainingNo];
+        this.targetSets = this.getTargetSets();
+        this.currentSetHits = this.getCurrentSetHits(0);
+        return this.training;
       }));
   }
 
-  private getTargetSets(): Observable<Array<Set>> {
-    return this.training
-      .pipe(map((training) => {
-        this.setsPerTraining = training.setsPerTraining;
-        this.hitsPerSet = training.hitsPerSet;
-        this.pointsTotal = training.hitsPerSet * training.setsPerTraining * 10;
+  private getTargetSets(): Array<Set> {
+    this.setsPerTraining = this.training.setsPerTraining;
+    this.hitsPerSet = this.training.hitsPerSet;
+    this.pointsTotal = this.training.hitsPerSet * this.training.setsPerTraining * 10;
 
-        let sets = training.sets.map((trainingSet) => {
-          return {
-            hits: trainingSet.hits.map((profileHit) => this.toHit(profileHit))
-          };
-        });
+    let sets = this.training.sets.map((trainingSet) => {
+      return {
+        hits: trainingSet.hits.map((profileHit) => this.toHit(profileHit))
+      };
+    });
 
-        this.points = sets.flatMap((set) => set.hits.map((hit) => hit.points))
-          .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+    this.points = sets.flatMap((set) => set.hits.map((hit) => hit.points))
+      .reduce((accumulator, currentValue) => accumulator + currentValue, 0);
 
-        return sets;
-      }));
+    return sets;
   }
 
-  private addSetIfNeeded(training: Training, increment: number): Observable<Training> {
-    let sets = training.sets;
+  private addSetIfNeeded(increment: number) {
+    let sets = this.training.sets;
     if (this.currentSet + increment >= sets.length &&
       this.currentSet + increment < this.setsPerTraining) {
-      console.log("ADDING SET");
       this.currentSet += increment;
-      return this.profileService.addSet(this.trainingNo)
+      this.profileService.addSet(this.trainingNo)
         .pipe(mergeMap((_) => {
           return this.getTraining();
-        }));
+        }))
+        .subscribe();
+      return true;
     } else if ((this.currentSet + increment) >= 0 &&
       (this.currentSet + increment) < sets.length) {
-      console.log("SWITCHING SET");
       this.currentSet += increment;
     }
-    return of(training);
+    return false;
   }
 
-  private getCurrentSetHits(increment: number): Observable<Array<Hit>> {
-    return this.training.pipe(mergeMap((inputTraining) => {
+  private getCurrentSetHits(increment: number): Array<Hit> {
+    // initialization
+    if (this.currentSet < 0) {
+      this.currentSet = this.training.sets.length - 1;
+    }
 
-      // initialization
-      if (this.currentSet < 0) {
-        this.currentSet = inputTraining.sets.length - 1;
-      }
+    // add or shift by increment
+    if (this.addSetIfNeeded(increment)) {
+      return this.currentSetHits;
+    }
 
-      // add or shift by increment
-      this.training = this.addSetIfNeeded(inputTraining, increment);
+    let sets = this.training.sets;
+    this.setsCount = sets.length;
+    this.hitsCount = sets[this.currentSet].hits.length;
 
-      return this.training.pipe(map((training) => {
-        let sets = training.sets;
-
-        this.setsCount = sets.length;
-        this.hitsCount = sets[this.currentSet].hits.length;
-
-        return sets[this.currentSet].hits.map((hit) => {
-          return this.toHit(hit);
-        });
-      }));
-    }));
+    return sets[this.currentSet].hits.map((hit) => {
+      return this.toHit(hit);
+    });
   }
 
   public hasPrevious(): boolean {
@@ -147,13 +146,11 @@ export class TrainingComponent {
   }
 
   public onDeleteLastHit() {
-    this.currentSetHits
-      .pipe(mergeMap(hits =>
-        this.profileService.deleteHit(this.trainingNo, this.currentSet, hits.length - 1)))
-      .subscribe(_ => {
-        this.targetSets = this.getTargetSets();
-        this.currentSetHits = this.getCurrentSetHits(0);
-      });
+    this.profileService.deleteHit(this.trainingNo, this.currentSet, this.currentSetHits.length - 1)
+      .pipe(mergeMap((_) => {
+        return this.getTraining();
+      }))
+      .subscribe();
   }
 
   public targetHitEvent(hit: Hit) {
@@ -161,10 +158,10 @@ export class TrainingComponent {
       return;
     }
     this.profileService.addHit(this.trainingNo, this.currentSet, this.fromHit(hit))
-      .subscribe(_ => {
-        this.targetSets = this.getTargetSets();
-        this.currentSetHits = this.getCurrentSetHits(0);
-      });
+      .pipe(mergeMap((_) => {
+        return this.getTraining();
+      }))
+      .subscribe();
   }
 
   private toHit(hit: ProfileHit): Hit {

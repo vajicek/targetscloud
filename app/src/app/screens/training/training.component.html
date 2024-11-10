@@ -11,7 +11,7 @@
 		</app-target>
 	</div>
 	<div class="buttons">
-		<div *ngFor="let hit of currentSetHits | async" class="result">
+		<div *ngFor="let hit of currentSetHits" class="result">
 			{{hit.points <= 0 ? "M" : hit.points}}
 		</div>
 		<div class="shevron" (click)="onDeleteLastHit()">&nbsp;</div>
