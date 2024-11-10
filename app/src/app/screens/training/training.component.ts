@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, map, mergeMap } from 'rxjs';
+import { Observable, map, mergeMap, of } from 'rxjs';
 
 import { ToolbarComponent } from '../../components/toolbar/toolbar.component';
 import {
@@ -82,33 +82,46 @@ export class TrainingComponent {
       }));
   }
 
+  private addSetIfNeeded(training: Training, increment: number): Observable<Training> {
+    let sets = training.sets;
+    if (this.currentSet + increment >= sets.length &&
+      this.currentSet + increment < this.setsPerTraining) {
+      console.log("ADDING SET");
+      this.currentSet += increment;
+      return this.profileService.addSet(this.trainingNo)
+        .pipe(mergeMap((_) => {
+          return this.getTraining();
+        }));
+    } else if ((this.currentSet + increment) >= 0 &&
+      (this.currentSet + increment) < sets.length) {
+      console.log("SWITCHING SET");
+      this.currentSet += increment;
+    }
+    return of(training);
+  }
+
   private getCurrentSetHits(increment: number): Observable<Array<Hit>> {
-    return this.training.pipe(map((training) => {
-      let sets = training.sets;
+    return this.training.pipe(mergeMap((inputTraining) => {
 
+      // initialization
       if (this.currentSet < 0) {
-        this.currentSet = sets.length - 1;
+        this.currentSet = inputTraining.sets.length - 1;
       }
 
-      if (this.currentSet + increment >= sets.length &&
-        this.currentSet + increment < this.setsPerTraining) {
-        // TODO: this.profileService.addSet(this.trainingNo)
-        training.sets.push({
-          hits: new Array<Hit>()
-        })
-        this.currentSet += increment;
-      } else if ((this.currentSet + increment) >= 0 &&
-        (this.currentSet + increment) < sets.length) {
-        this.currentSet += increment;
-      }
+      // add or shift by increment
+      this.training = this.addSetIfNeeded(inputTraining, increment);
 
-      this.setsCount = sets.length;
-      this.hitsCount = sets[this.currentSet].hits.length;
+      return this.training.pipe(map((training) => {
+        let sets = training.sets;
 
-      return sets[this.currentSet].hits.map((hit) => {
-        return this.toHit(hit);
-      });
-    }))
+        this.setsCount = sets.length;
+        this.hitsCount = sets[this.currentSet].hits.length;
+
+        return sets[this.currentSet].hits.map((hit) => {
+          return this.toHit(hit);
+        });
+      }));
+    }));
   }
 
   public hasPrevious(): boolean {

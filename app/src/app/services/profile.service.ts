@@ -65,8 +65,13 @@ export class ProfileService {
   public addHit(trainingNo: number, setNo: number, hit: Hit): Observable<any> {
     return this.user.pipe(mergeMap(user => {
       user["trainings"][trainingNo]["sets"][setNo]["hits"].push(hit);
+      return this.storeUser(user);
+    }));
+  }
 
-
+  public addSet(trainingNo: number): Observable<any> {
+    return this.user.pipe(mergeMap(user => {
+      user["trainings"][trainingNo]["sets"].push({ "hits": [] });
       return this.storeUser(user);
     }));
   }
@@ -74,6 +79,21 @@ export class ProfileService {
   private getUser(id: String): Observable<any> {
     // TODO: Add auth token!
     return this.http.get<any>(this.usersApiUrl + "/" + id);
+  }
+
+  public addTraining(): Observable<any> {
+    return this.user.pipe(mergeMap(user => {
+      user["trainings"].length
+      user["trainings"].push({
+        "id": `${user["trainings"].length}`,
+        "timestamp": "123",
+        "training_type": "type",
+        "title": "title",
+        "score": "1",
+        "sets": [{"hits": []}]
+      });
+      return this.storeUser(user);
+    }));
   }
 
   public deleteTraining(trainingId: String): Observable<any> {

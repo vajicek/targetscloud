@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ToolbarComponent } from '../../components/toolbar/toolbar.component';
 import { Router } from '@angular/router';
+import { ProfileService } from "../../services/profile.service";
+import { mergeMap, lastValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-newtraining',
@@ -10,9 +12,19 @@ import { Router } from '@angular/router';
   styleUrl: './newtraining.component.css'
 })
 export class NewTrainingComponent {
-  constructor(private router: Router) { }
+  constructor(private router: Router,
+    private profileService: ProfileService) { }
 
-  onTrainingClick() {
-    this.router.navigate(['/training'])
+  onOkClick() {
+    this.profileService.trainings()
+      .pipe(mergeMap(async trainings => {
+        const _ = await lastValueFrom(this.profileService.addTraining());
+        this.router.navigate(['/training', { training: trainings.length }]);
+      }))
+      .subscribe();
+  }
+
+  onCancelClick() {
+    this.router.navigate(['/trainings'])
   }
 }
