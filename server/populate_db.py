@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
+import argparse
 import pymongo
 import logging
 import random
 import bcrypt
 
-def get_mongo_client():
-    client = pymongo.MongoClient("localhost",
-                                 27017,
-                                 password="secret",
-                                 username="mongoadmin")
+
+def get_mongo_client(uri):
+    client = pymongo.MongoClient(uri,
+                                 server_api=pymongo.server_api.ServerApi('1'))
     logging.info(client.list_database_names())
     return client
 
@@ -61,7 +61,7 @@ def generate_users(users, users_count, trainings_count, sets_count, hits_count):
         })
 
 
-def generate_userAuths(user_auths, users_count):
+def generate_user_auths(user_auths, users_count):
     user_auths.drop()
 
     for user_no in range(users_count):
@@ -73,10 +73,31 @@ def generate_userAuths(user_auths, users_count):
         })
 
 
-client = get_mongo_client()
-db = get_db(client, "local")
-users = get_collection(db, "users")
-user_auths = get_collection(db, "user_auths")
-generate_users(users, 1, 10, 10, 3)
-generate_userAuths(user_auths, 1)
+def get_args():
+    parser = argparse.ArgumentParser(
+        prog='populate_db',
+        description='Populate targetscloud database')
 
+    parser.add_argument('-u', '--uri',
+                        type=str,
+                        default="mongodb://mongoadmin:secret@localhost:27017",
+                        help="MongoDB connection uri")
+    parser.add_argument('-d', '--database',
+                        type=str,
+                        default="master",
+                        help="MongoDB database name")
+
+    return parser.parse_args()
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    args = get_args()
+    client = get_mongo_client(args.uri)
+    db = get_db(client, args.database)
+    users = get_collection(db, "users")
+    user_auths = get_collection(db, "user_auths")
+    generate_users(users, 1, 10, 10, 3)
+    generate_user_auths(user_auths, 1)
+
+main()

@@ -7,7 +7,8 @@ WORKDIR /tmp/home
 COPY app/dist/app ./
 COPY server/package*.json ./
 COPY server/*.js ./
+COPY server/run.sh ./
 
 RUN npm install
 
-CMD ["node", "app.js"]
+CMD ["./run.sh"]

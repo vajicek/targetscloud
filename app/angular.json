@@ -23,7 +23,8 @@
             "assets": [
               "src/assets/targetscloud.png",
               "src/assets/avatar2.png",
-              "src/assets/avatar3.png"
+              "src/assets/avatar3.png",
+              "src/assets/config.json"
             ],
             "styles": [
               "src/styles.css"
