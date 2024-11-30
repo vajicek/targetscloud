@@ -114,8 +114,6 @@ async function login(req, res, userAuthsModel, secret) {
 	const userAuth = await userAuthsModel.find({ username: username })
 		.exec();
 
-	console.info(userAuth);
-
 	console.info("Validating credentials");
 	if (userAuth.length === 0 ||
 		!(await bcrypt.compare(password, userAuth[0].password))) {
@@ -161,15 +159,6 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 
 
 function serveApi(args, models) {
-
-
-	const userAuth = models["users"].find()
-		.exec();
-
-	userAuth.then(a=>{
-		console.log(a);
-	});
-
 	// Setup router for /api
 	const router = express.Router();
 	router.get('/users', (req, res) =>

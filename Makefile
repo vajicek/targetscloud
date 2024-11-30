@@ -21,7 +21,6 @@ add_component:
 serve_backend:
 	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
 	cd server && nodejs ./app.js -p 4443
-# \ -m "mongodb+srv://vaclavkrajicek:NU1fppzVoXBXPM2L@cluster0.hc6vq.mongodb.net?retryWrites=true&w=majority&appName=Cluster0"
 
 # Project setup
 create:
@@ -50,8 +49,6 @@ run_release:
 	-p 443 \
 	-k /tmp/home/certs/privkey1.pem \
 	-c /tmp/home/certs/fullchain1.pem &
-# \ -m "mongodb+srv://vaclavkrajicek:NU1fppzVoXBXPM2L@cluster0.hc6vq.mongodb.net?retryWrites=true&w=majority&appName=Cluster0"
-
 
 # DEV CONTEINER
 build_devcontainer:
