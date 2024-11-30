@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { ProfileService } from "../../services/profile.service";
+import { LoginService } from "../../services/login.service";
 
 @Component({
   selector: 'app-mainscreen',
@@ -12,6 +13,7 @@ import { ProfileService } from "../../services/profile.service";
 export class MainScreenComponent {
 
   constructor(private router: Router,
+              private loginService: LoginService,
               public profileService: ProfileService) { }
 
   onTrainingsClick() {
@@ -31,6 +33,7 @@ export class MainScreenComponent {
   }
 
   onLogOutClick() {
+    this.loginService.logout();
     this.router.navigate(['/login'])
   }
 }

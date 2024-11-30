@@ -22,7 +22,6 @@ export class LoginScreenComponent {
     this.loginService.login(this.username, this.password)
       .subscribe({
         next: (response: any) => {
-          localStorage.setItem('token', response.token);
           // TODO: user id
           this.router.navigate(['/main'])
         },
