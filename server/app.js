@@ -9,6 +9,17 @@ const crypto = require('crypto');
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
+const pino = require('pino');
+
+const logger = pino({
+	level: process.env.PINO_LOG_LEVEL || 'info',
+	timestamp: pino.stdTimeFunctions.isoTime,
+	formatters: {
+		level(label) {
+			return { level: label };
+		}
+	}
+});
 
 
 const userSchema = new mongoose.Schema({
@@ -51,7 +62,7 @@ const userAuthSchema = new mongoose.Schema({
 
 async function getAllUsers(req, res, usersModel) {
 	try {
-		console.log("Getting all users");
+		logger.info("Getting all users");
 		const data = await usersModel.find();
 		res.json(data);
 	} catch (error) {
@@ -62,7 +73,7 @@ async function getAllUsers(req, res, usersModel) {
 
 async function getUser(req, res, usersModel) {
 	try {
-		console.log(`Getting user id=${req.params.id}`);
+		logger.info(`Getting user id=${req.params.id}`);
 		const data = await usersModel.find({ id: String(req.params.id) })
 			.exec();
 		res.json(data);
@@ -75,13 +86,13 @@ async function getUser(req, res, usersModel) {
 
 async function updateUser(req, res, usersModel) {
 	try {
-		console.log(`Updating user id=${req.params.id}`);
+		logger.info(`Updating user id=${req.params.id}`);
 		const retVal = await usersModel.updateOne(
 			{ id: String(req.params.id) },
 			req.body);
 		res.json(retVal);
 	} catch (error) {
-		console.log(error);
+		logger.error(error);
 		res.status(500)
 			.json({ error: error.message });
 	}
@@ -91,8 +102,8 @@ async function updateUser(req, res, usersModel) {
 function connectToMongo(args) {
 	// MongoDB Connection
 	mongoose.connect(args.mongodb)
-		.then(() => console.log("Connected to MongoDB"))
-		.catch(err => console.error("MongoDB connection error:", err));
+		.then(() => logger.info("Connected to MongoDB"))
+		.catch(err => logger.error("MongoDB connection error:", err));
 
 	// MongoDB Models
 	const usersModel = mongoose.model('users', userSchema);
@@ -106,24 +117,24 @@ function connectToMongo(args) {
 
 
 async function login(req, res, userAuthsModel, secret) {
-	console.info("Logging in");
+	logger.info("Logging in");
 
 	const { username, password } = req.body;
 
-	console.info(`Fetching user (username=${username}) authentication details`);
+	logger.info(`Fetching user (username=${username}) authentication details`);
 	const userAuth = await userAuthsModel.find({ username: username })
 		.exec();
 
-	console.info("Validating credentials");
+	logger.info("Validating credentials");
 	if (userAuth.length === 0 ||
 		!(await bcrypt.compare(password, userAuth[0].password))) {
 		msg = 'Access denied. Invalid username or password!';
-		console.error(msg);
+		logger.error(msg);
 		return res.status(401)
 			.send(msg);
 	}
 
-	console.info("Login successful");
+	logger.info("Login successful");
 	const token = jwt.sign({ username }, secret, { expiresIn: '1h' });
 	res.json({ token });
 }
@@ -134,13 +145,14 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 	const token = authHeader && authHeader.split(' ')[1];
 
 	if (exceptions.includes(req.path)) {
+		logger.debug(`Authentication skipped, path=${req.path}`);
 		next();
 		return;
 	}
 
 	if (!token) {
 		msg = "Access denied. No token provided.";
-		console.error(msg);
+		logger.error(msg);
 		return res.status(401)
 			.json({ message: msg });
 	}
@@ -151,7 +163,7 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 		next();
 	} catch (error) {
 		msg = "Access denied. Invalid token."
-		console.error(msg);
+		logger.error(msg);
 		res.status(403)
 			.json({ message: msg });
 	}
@@ -194,19 +206,19 @@ function serveApi(args, models) {
 	// Start server
 	const server = https.createServer(options, app)
 		.listen(args.port, () => {
-			console.log(`TargetsCloud backend listening on port ${args.port}!`)
+			logger.info(`TargetsCloud backend listening on port ${args.port}!`)
 		});
 
 	// Handling shutdown
 	process.on('SIGINT', () => {
-		console.log('\nGracefully shutting down...');
+		logger.info('\nGracefully shutting down...');
 		server.close(() => {
-			console.log('Server closed');
+			logger.info('Server closed');
 			process.exit(0);
 		});
 		// Force exit if close takes too long
 		setTimeout(() => {
-			console.error('Forced shutdown');
+			logger.error('Forced shutdown');
 			process.exit(1);
 		}, 5000);
 	});
@@ -218,6 +230,10 @@ function getArgs() {
 		description: 'TargetsCloud backend'
 	});
 
+	parser.add_argument('-v', '--verbose', {
+		action: 'store_true',
+		help: 'Enable verbose mode',
+	});
 	parser.add_argument('-c', '--cert', {
 		help: 'SSL Certificate',
 		default: 'cert.pem'
@@ -244,6 +260,10 @@ function getArgs() {
 
 function main() {
 	args = getArgs();
+
+	if (args.verbose) {
+		logger.level = 'debug';
+	}
 
 	models = connectToMongo(args)
 	serveApi(args, models);
