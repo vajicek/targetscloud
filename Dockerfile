@@ -11,4 +11,4 @@ COPY server/run.sh ./
 
 RUN npm install
 
-CMD ["./run.sh"]
+ENTRYPOINT ["./run.sh"]

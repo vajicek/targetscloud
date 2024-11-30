@@ -7,6 +7,8 @@ const cors = require('cors');
 const { ArgumentParser } = require('argparse');
 const crypto = require('crypto');
 const path = require('path');
+const https = require('https');
+const fs = require('fs');
 
 
 const userSchema = new mongoose.Schema({
@@ -112,6 +114,8 @@ async function login(req, res, userAuthsModel, secret) {
 	const userAuth = await userAuthsModel.find({ username: username })
 		.exec();
 
+	console.info(userAuth);
+
 	console.info("Validating credentials");
 	if (userAuth.length === 0 ||
 		!(await bcrypt.compare(password, userAuth[0].password))) {
@@ -127,9 +131,14 @@ async function login(req, res, userAuthsModel, secret) {
 }
 
 
-function authenticationInterceptor(req, res, next, secret) {
+function authenticationInterceptor(req, res, next, secret, exceptions) {
 	const authHeader = req.headers.authorization;
 	const token = authHeader && authHeader.split(' ')[1];
+
+	if (exceptions.includes(req.path)) {
+		next();
+		return;
+	}
 
 	if (!token) {
 		msg = "Access denied. No token provided.";
@@ -152,39 +161,82 @@ function authenticationInterceptor(req, res, next, secret) {
 
 
 function serveApi(args, models) {
-	const app = express();
-	const router = express.Router();
 
-	// Setup router
-	router.get('/api/users', (req, res) =>
+
+	const userAuth = models["users"].find()
+		.exec();
+
+	userAuth.then(a=>{
+		console.log(a);
+	});
+
+	// Setup router for /api
+	const router = express.Router();
+	router.get('/users', (req, res) =>
 		getAllUsers(req, res, models["users"]));
-	router.get('/api/users/:id', (req, res) =>
+	router.get('/users/:id', (req, res) =>
 		getUser(req, res, models["users"]));
-	router.put('/api/users/:id', (req, res) =>
+	router.put('/users/:id', (req, res) =>
 		updateUser(req, res, models["users"]));
 	router.post('/login', (req, res) =>
 		login(req, res, models["userAuths"], args.secret));
 
 	// Setup express
+	const app = express();
 	app.use(cors());
 
 	app.use('/api', (req, res, next) =>
-		authenticationInterceptor(req, res, next, args.secret) );
+		authenticationInterceptor(req, res, next, args.secret, ["/login"]));
 	app.use(bodyParser.json());
-	app.use('/', router);
-	app.use(express.static(path.join(__dirname, 'browser')));
+	app.use('/api', router);
 
-	app.listen(args.port, function () {
-		console.log(`TargetsCloud backend listening on port ${args.port}!`)
-	})
+	// Setup hosting of Angular App
+	app.use(express.static(path.join(__dirname, 'browser')));
+	app.get('*', (req, res) => {
+		res.sendFile(path.join(__dirname, 'browser', 'index.html'));
+	});
+
+	// SSL Cert
+	const options = {
+		key: fs.readFileSync(args.privatekey),
+		cert: fs.readFileSync(args.cert)
+	};
+
+	// Start server
+	const server = https.createServer(options, app)
+		.listen(args.port, () => {
+			console.log(`TargetsCloud backend listening on port ${args.port}!`)
+		});
+
+	// Handling shutdown
+	process.on('SIGINT', () => {
+		console.log('\nGracefully shutting down...');
+		server.close(() => {
+			console.log('Server closed');
+			process.exit(0);
+		});
+		// Force exit if close takes too long
+		setTimeout(() => {
+			console.error('Forced shutdown');
+			process.exit(1);
+		}, 5000);
+	});
 }
 
 
-function get_args() {
+function getArgs() {
 	const parser = new ArgumentParser({
 		description: 'TargetsCloud backend'
 	});
 
+	parser.add_argument('-c', '--cert', {
+		help: 'SSL Certificate',
+		default: 'cert.pem'
+	});
+	parser.add_argument('-k', '--privatekey', {
+		help: 'SSL Private Key',
+		default: 'key.pem'
+	});
 	parser.add_argument('-s', '--secret', {
 		help: 'JWT Secret',
 		default: crypto.randomBytes(32).toString('hex')
@@ -195,14 +247,14 @@ function get_args() {
 	});
 	parser.add_argument('-m', '--mongodb', {
 		help: 'MongoDB connection string',
-		default: 'mongodb://mongoadmin:secret@localhost:27017/local?authSource=admin'
+		default: 'mongodb://mongoadmin:secret@localhost:27017/master?authSource=admin'
 	});
 	return parser.parse_args();
 }
 
 
 function main() {
-	args = get_args();
+	args = getArgs();
 
 	models = connectToMongo(args)
 	serveApi(args, models);

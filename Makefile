@@ -1,6 +1,7 @@
 NG := node_modules/.bin/ng
 UID := $(shell id -u)
 GID := $(shell id -g)
+WEBAPP_CONFIGURATION ?= production
 
 # SERVER WEBAPP
 serve_ng:
@@ -9,7 +10,7 @@ serve_ng:
 build_webapp:
 	cd app && $(NG) cache clean
 	cd app && $(NG) build \
-		--configuration production \
+		--configuration $(WEBAPP_CONFIGURATION) \
 		--optimization true \
 		--output-hashing none
 
@@ -18,7 +19,9 @@ add_component:
 
 # SERVER BACKEND
 serve_backend:
-	cd server && nodejs ./app.js
+	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
+	cd server && nodejs ./app.js -p 4443
+# \ -m "mongodb+srv://vaclavkrajicek:NU1fppzVoXBXPM2L@cluster0.hc6vq.mongodb.net?retryWrites=true&w=majority&appName=Cluster0"
 
 # Project setup
 create:
@@ -36,13 +39,19 @@ build_release:
 	-f ./Dockerfile .
 
 run_release:
+	docker kill targetscloud-release || true
 	docker run \
-	-it \
 	--rm \
 	--name targetscloud-release \
 	--network host \
-	-p 80:80 \
-	targetscloud-release node app.js -p 80
+	-v /etc/letsencrypt/archive/www.targetscloud.org:/tmp/home/certs \
+	-p 443:443 \
+	targetscloud-release \
+	-p 443 \
+	-k /tmp/home/certs/privkey1.pem \
+	-c /tmp/home/certs/fullchain1.pem &
+# \ -m "mongodb+srv://vaclavkrajicek:NU1fppzVoXBXPM2L@cluster0.hc6vq.mongodb.net?retryWrites=true&w=majority&appName=Cluster0"
+
 
 # DEV CONTEINER
 build_devcontainer:
@@ -81,3 +90,17 @@ run_mongo:
 		-e MONGO_INITDB_ROOT_USERNAME=mongoadmin \
 		-e MONGO_INITDB_ROOT_PASSWORD=secret \
 		-d mongo:latest
+
+create_certs:
+	openssl genrsa -out server/key.pem 2048
+	openssl req -new -newkey rsa:2048 -nodes \
+		-keyout server/key.pem \
+		-out server/csr.pem \
+		-subj "/C=US/ST=Prague/L=Prague/O=VajSoft/OU=HQ/CN=localhost/emailAddress=admin@targetscloud.org"
+	openssl x509 -req -days 365 \
+		-in server/csr.pem \
+		-signkey server/key.pem \
+		-out server/cert.pem
+	openssl x509 -outform PEM \
+		-in server/cert.pem \
+		-out server/selfsigned.crt

@@ -97,7 +97,7 @@ def main():
     db = get_db(client, args.database)
     users = get_collection(db, "users")
     user_auths = get_collection(db, "user_auths")
-    generate_users(users, 1, 10, 10, 3)
-    generate_user_auths(user_auths, 1)
+    generate_users(users, 5, 10, 10, 3)
+    generate_user_auths(user_auths, 5)
 
 main()
