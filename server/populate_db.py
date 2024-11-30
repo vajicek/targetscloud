@@ -23,9 +23,9 @@ def get_collection(db, collection_name):
     return db[collection_name]
 
 
-def user(user_no, username, trainings):
+def user(user_id, username, trainings):
     return {
-        "id": user_no,
+        "id": user_id,
         "name": username,
         "trainings": trainings,
         "friends": [],

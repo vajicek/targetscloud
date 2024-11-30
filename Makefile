@@ -20,7 +20,9 @@ add_component:
 # SERVER BACKEND
 serve_backend:
 	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
-	cd server && nodejs ./app.js -p 4443 -v
+	cd server && nodejs ./app.js \
+		-p 4443 \
+		-v
 
 # Project setup
 create:

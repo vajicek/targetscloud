@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from, mergeMap, map } from 'rxjs';
+
 import { environment } from '../../environments/environment';
+import { LoginService } from "./login.service";
 
 export interface Hit {
   dist: number;
@@ -30,14 +32,19 @@ export class ProfileService {
 
   private user: Observable<any>;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,
+              private loginService: LoginService) {
+    this.user = this.update();
+  }
+
+  public refresh() {
     this.user = this.update();
   }
 
   private update(): Observable<any> {
     return from(new Promise((resolve, reject) => {
       // TODO: load from server or replace in memory for optimization
-      this.getUser('0')
+      this.getUser(this.loginService.getUserId())
         .subscribe({
           next: (response) => {
             resolve(response[0]);

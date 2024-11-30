@@ -10,6 +10,8 @@ const path = require('path');
 const https = require('https');
 const fs = require('fs');
 const pino = require('pino');
+const { OAuth2Client } = require('google-auth-library');
+
 
 const logger = pino({
 	level: process.env.PINO_LOG_LEVEL || 'info',
@@ -116,7 +118,20 @@ function connectToMongo(args) {
 }
 
 
-async function login(req, res, userAuthsModel, secret) {
+function loginResponse(user, res, secret) {
+	// return application token
+	logger.info("Login successful");
+	const token = jwt.sign({
+		username: user.name,
+		id: user.id
+	},
+		secret,
+		{ expiresIn: '1h' });
+	res.json({ token });
+}
+
+
+async function login(req, res, usersModel, userAuthsModel, secret) {
 	logger.info("Logging in");
 
 	const { username, password } = req.body;
@@ -134,9 +149,57 @@ async function login(req, res, userAuthsModel, secret) {
 			.send(msg);
 	}
 
-	logger.info("Login successful");
-	const token = jwt.sign({ username }, secret, { expiresIn: '1h' });
-	res.json({ token });
+	const user = await usersModel.findOne({ name: username })
+		.exec();
+
+	loginResponse(user, res, secret);
+}
+
+
+async function createIfNeeded(username, usersModel) {
+	logger.info(`Fetching user (username=${username}) authentication details`);
+	const user = await usersModel.findOne({ name: username })
+		.exec();
+
+	if (user) {
+		return Promise.resolve(user);
+	}
+
+	logger.info(`User ${username} does not exist yet`);
+	const latestUser = await usersModel.findOne({}, {}, { sort: { id: -1 } })
+		.exec();
+	const userId = parseInt(latestUser["id"]) + 1;
+	return usersModel.create({
+		"id": String(userId),
+		"name": username,
+		"trainings": [],
+		"friends": [],
+		"chats": [],
+		"groups": []
+	}).then((doc) => {
+		logger.debug(`Record inserted: ${doc}`);
+		return doc;
+	}).catch((err) => {
+		logger.error(`Error inserting record: ${err}`);
+	});
+}
+
+
+async function loginWithGoogle(googleClient, googleClientId, req, res, usersModel, secret) {
+	logger.info("Logging in with Google token");
+
+	logger.info("Validating token");
+	const googleToken = req.body.token;
+	const ticket = await googleClient.verifyIdToken({
+		idToken: googleToken,
+		audience: googleClientId,
+	});
+	const payload = ticket.getPayload();
+	const username = payload.sub;
+
+	const user = await createIfNeeded(username, usersModel);
+
+	loginResponse(user, res, secret);
 }
 
 
@@ -171,6 +234,9 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 
 
 function serveApi(args, models) {
+	// Setup google authentication client
+	const googleClient = new OAuth2Client(args.googleclientid);
+
 	// Setup router for /api
 	const router = express.Router();
 	router.get('/users', (req, res) =>
@@ -180,14 +246,16 @@ function serveApi(args, models) {
 	router.put('/users/:id', (req, res) =>
 		updateUser(req, res, models["users"]));
 	router.post('/login', (req, res) =>
-		login(req, res, models["userAuths"], args.secret));
+		login(req, res, models["users"], models["userAuths"], args.secret));
+	router.post('/loginWithGoogle', (req, res) =>
+		loginWithGoogle(googleClient, args.googleclientid, req, res, models["users"], args.secret));
 
 	// Setup express
 	const app = express();
 	app.use(cors());
 
 	app.use('/api', (req, res, next) =>
-		authenticationInterceptor(req, res, next, args.secret, ["/login"]));
+		authenticationInterceptor(req, res, next, args.secret, ["/login", "/loginWithGoogle"]));
 	app.use(bodyParser.json());
 	app.use('/api', router);
 
@@ -211,7 +279,7 @@ function serveApi(args, models) {
 
 	// Handling shutdown
 	process.on('SIGINT', () => {
-		logger.info('\nGracefully shutting down...');
+		logger.info('Gracefully shutting down...');
 		server.close(() => {
 			logger.info('Server closed');
 			process.exit(0);
@@ -249,6 +317,10 @@ function getArgs() {
 	parser.add_argument('-p', '--port', {
 		help: 'API port',
 		default: 8000
+	});
+	parser.add_argument('-g', '--googleclientid', {
+		help: 'Google Client ID',
+		default: null
 	});
 	parser.add_argument('-m', '--mongodb', {
 		help: 'MongoDB connection string',

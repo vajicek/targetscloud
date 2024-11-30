@@ -10,13 +10,23 @@ import { environment } from '../../environments/environment';
 })
 export class LoginService {
   private loginUrl = environment.apiUrl + '/api/login';
+  private loginWithGoogleUrl = environment.apiUrl + '/api/loginWithGoogle';
 
   constructor(private http: HttpClient, private jwtHelper: JwtHelperService) { }
 
   public login(username: string, password: string): Observable<any> {
     return this.http.post<{ token: string }>(
-        `${this.loginUrl}`,
-        { username, password })
+      `${this.loginUrl}`,
+      { username, password })
+      .pipe(tap((response: any) => {
+        this.setToken(response.token);
+      }));
+  }
+
+  public loginWithGoogle(token: string): Observable<any> {
+    return this.http.post<{ token: string }>(
+      `${this.loginWithGoogleUrl}`,
+      { token })
       .pipe(tap((response: any) => {
         this.setToken(response.token);
       }));
@@ -31,11 +41,15 @@ export class LoginService {
     localStorage.removeItem('token');
   }
 
-  public getToken() {
+  public getToken(): string | null {
     return localStorage.getItem('token');
   }
 
   private setToken(token: string) {
     localStorage.setItem('token', token);
+  }
+
+  public getUserId(): string {
+    return this.jwtHelper.decodeToken(this.getToken()!)["id"];
   }
 }
