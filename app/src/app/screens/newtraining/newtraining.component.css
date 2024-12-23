@@ -57,10 +57,9 @@
 	margin-bottom: 0.5em;
 }
 
-.edit input {
+.edit {
 	width: -webkit-fill-available;
 	font-size: x-large;
-	margin-bottom: 1em;
 }
 
 .buttons {

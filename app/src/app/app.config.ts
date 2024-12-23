@@ -21,6 +21,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthInterceptorService } from './services/auth-interceptor.service';
 import { routes } from './app.routes';
 import { environment } from '../environments/environment';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 function loadConfig(http: HttpClient) {
   return () => firstValueFrom(http.get('/assets/config.json'))
@@ -31,6 +32,7 @@ function loadConfig(http: HttpClient) {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideAnimations(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(withInterceptorsFromDi()),

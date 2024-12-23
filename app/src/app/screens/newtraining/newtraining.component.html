@@ -3,11 +3,22 @@
 	<div class="window">
 		<div class="form">
 			<div class="caption">Title/Note</div>
-			<div class="edit">
-				<input type="text"/>
-			</div>
+			<mat-form-field class="edit">
+				<input type="text"
+					matInput
+					placeholder="Enter training name"
+					[formControl]="trainingNameControl"
+					[matAutocomplete]="auto">
+				<mat-autocomplete hideSingleSelectionIndicator
+					#auto="matAutocomplete">
+					<mat-option *ngFor="let option of trainingNameFilteredSuggestions | async"
+						[value]="option">
+						{{option}}
+					</mat-option>
+				</mat-autocomplete>
+			</mat-form-field>
 
-			<div class="caption">Target/Distance</div>
+			<div class="caption">Target/Distance/Sets</div>
 			<div class="buttons">
 				<div class="combo">122 cm</div>
 				<div class="combo">70m 12 x 6</div>

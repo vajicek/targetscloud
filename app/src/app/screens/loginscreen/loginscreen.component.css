@@ -60,12 +60,12 @@
 	background-color: white;
 	color: black;
 	border: 2px solid #04AA6D;
-	padding: 1em 1em;
+	padding: 0em 0em;
 	text-align: center;
 	text-decoration: none;
 	display: inline-block;
 	font-size: normal;
-	margin: 0.0em 0em;
+	margin: 0em 0em;
 	transition-duration: 0.4s;
 	cursor: pointer;
 	border-radius: 8px;
@@ -85,7 +85,7 @@
 }
 
 .g_button_wrapper {
-	margin: 0.0em 0em;
+	margin: 0em 0em;
 	border: 2px solid #04AA6D;
 	border-radius: 8px;
 	height: 40px;
