@@ -9,14 +9,20 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class LoginService {
-  private loginUrl = environment.apiUrl + '/api/login';
-  private loginWithGoogleUrl = environment.apiUrl + '/api/loginWithGoogle';
 
   constructor(private http: HttpClient, private jwtHelper: JwtHelperService) { }
 
+  private getLoginUrl(): string {
+    return environment.apiUrl + '/api/login';
+  }
+
+  private getLoginWithGoogleUrl(): string {
+    return environment.apiUrl + '/api/loginWithGoogle';
+  }
+
   public login(username: string, password: string): Observable<any> {
     return this.http.post<{ token: string }>(
-      `${this.loginUrl}`,
+      `${this.getLoginUrl()}`,
       { username, password })
       .pipe(tap((response: any) => {
         this.setToken(response.token);
@@ -25,7 +31,7 @@ export class LoginService {
 
   public loginWithGoogle(token: string): Observable<any> {
     return this.http.post<{ token: string }>(
-      `${this.loginWithGoogleUrl}`,
+      `${this.getLoginWithGoogleUrl()}`,
       { token })
       .pipe(tap((response: any) => {
         this.setToken(response.token);

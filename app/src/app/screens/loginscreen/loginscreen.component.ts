@@ -9,7 +9,6 @@ import { environment } from '../../../environments/environment';
 
 declare const google: any; // To avoid TypeScript errors
 
-
 @Component({
   selector: 'app-loginscreen',
   standalone: true,
@@ -39,12 +38,19 @@ export class LoginScreenComponent implements OnInit {
       client_id: environment.googleClientId,
       callback: this.handleCredentialResponse.bind(this),
     });
+    google.accounts.id.disableAutoSelect();
 
-    google.accounts.id.renderButton(
-      document.getElementById('g_id_signin')!,
-      { theme: 'outline', size: 'large' }
-    );
+    const googleSignInElement = document.getElementById('g_id_signin');
+    google.accounts.id.renderButton(googleSignInElement!, {
+      width: 297,
+      height: "3em"
+    });
     google.accounts.id.prompt();
+  }
+
+  private handleCredentialResponse(response: any): void {
+    console.log('handleCredentialResponse');
+    this.processLoginResponse(this.loginService.loginWithGoogle(response.credential));
   }
 
   private processLoginResponse(loginResponse: Observable<any>) {
@@ -57,10 +63,5 @@ export class LoginScreenComponent implements OnInit {
         alert('Login failed');
       }
     });
-  }
-
-  private handleCredentialResponse(response: any): void {
-    console.log('handleCredentialResponse');
-    this.processLoginResponse(this.loginService.loginWithGoogle(response.credential));
   }
 }

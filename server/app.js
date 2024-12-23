@@ -26,6 +26,9 @@ const logger = pino({
 
 const userSchema = new mongoose.Schema({
 	name: String,
+	display_name: String,
+	email: String,
+	picture: String,
 	id: String,
 	trainings: [{
 		id: String,
@@ -156,7 +159,13 @@ async function login(req, res, usersModel, userAuthsModel, secret) {
 }
 
 
-async function createIfNeeded(username, usersModel) {
+async function createIfNeeded(payload, usersModel) {
+
+	const username = payload.sub;
+	const name = payload.name;
+	const picture = payload.picture;
+	const email = payload.email;
+
 	logger.info(`Fetching user (username=${username}) authentication details`);
 	const user = await usersModel.findOne({ name: username })
 		.exec();
@@ -172,6 +181,9 @@ async function createIfNeeded(username, usersModel) {
 	return usersModel.create({
 		"id": String(userId),
 		"name": username,
+		"display_name": name,
+		"email": email,
+		"picture": picture,
 		"trainings": [],
 		"friends": [],
 		"chats": [],
@@ -195,10 +207,7 @@ async function loginWithGoogle(googleClient, googleClientId, req, res, usersMode
 		audience: googleClientId,
 	});
 	const payload = ticket.getPayload();
-	const username = payload.sub;
-
-	const user = await createIfNeeded(username, usersModel);
-
+	const user = await createIfNeeded(payload, usersModel);
 	loginResponse(user, res, secret);
 }
 
@@ -235,9 +244,11 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 
 function serveApi(args, models) {
 	// Setup google authentication client
+	logger.info(`Setting up google authentication client, googleclientid=${args.googleclientid}`);
 	const googleClient = new OAuth2Client(args.googleclientid);
 
 	// Setup router for /api
+	logger.info(`Setting up route for /api`);
 	const router = express.Router();
 	router.get('/users', (req, res) =>
 		getAllUsers(req, res, models["users"]));
@@ -251,27 +262,39 @@ function serveApi(args, models) {
 		loginWithGoogle(googleClient, args.googleclientid, req, res, models["users"], args.secret));
 
 	// Setup express
+	logger.info(`Setting up express`);
 	const app = express();
 	app.use(cors());
 
+	logger.info(`Setting up /api`);
 	app.use('/api', (req, res, next) =>
 		authenticationInterceptor(req, res, next, args.secret, ["/login", "/loginWithGoogle"]));
 	app.use(bodyParser.json());
 	app.use('/api', router);
 
+	// Logging access
+	logger.info(`Setting up access log`);
+	app.use((req, res, next) => {
+		logger.debug(`${req.method} ${req.url} - ${req.ip}`);
+		next();
+	});
+
 	// Setup hosting of Angular App
+	logger.info(`Setting up static pages routing`);
 	app.use(express.static(path.join(__dirname, 'browser')));
 	app.get('*', (req, res) => {
 		res.sendFile(path.join(__dirname, 'browser', 'index.html'));
 	});
 
 	// SSL Cert
+	logger.info(`Getting SSL cert and key`);
 	const options = {
 		key: fs.readFileSync(args.privatekey),
 		cert: fs.readFileSync(args.cert)
 	};
 
 	// Start server
+	logger.info(`Starting server`);
 	const server = https.createServer(options, app)
 		.listen(args.port, () => {
 			logger.info(`TargetsCloud backend listening on port ${args.port}!`)

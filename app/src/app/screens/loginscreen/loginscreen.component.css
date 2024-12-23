@@ -9,6 +9,7 @@
 	background-size: 100%;
 	aspect-ratio: 1.2;
 }
+
 .window {
 	border-radius: 25px;
 	border: 2px solid black;
@@ -49,6 +50,8 @@
 }
 
 .buttons {
+	margin: auto;
+	width: 300px;
 	display: grid;
 	grid-template-columns: 100%;
 }
@@ -62,13 +65,37 @@
 	text-decoration: none;
 	display: inline-block;
 	font-size: normal;
-	margin: 0.3em 0em;
+	margin: 0.0em 0em;
 	transition-duration: 0.4s;
 	cursor: pointer;
 	border-radius: 8px;
+	height: 3em;
 }
 
 .button:hover {
 	background-color: #04AA6D;
 	color: white;
+}
+
+.line {
+	height: 1px;
+	background-color: black;
+	width: 90%;
+	margin: 10px auto;
+}
+
+.g_button_wrapper {
+	margin: 0.0em 0em;
+	border: 2px solid #04AA6D;
+	border-radius: 8px;
+	height: 40px;
+}
+
+.g_button_wrapper:hover {
+	background-color: #04AA6D;
+	color: white;
+}
+
+.g_id_signin {
+	width: 300px;
 }

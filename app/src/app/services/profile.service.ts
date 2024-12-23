@@ -28,13 +28,16 @@ export interface Training {
   providedIn: 'root'
 })
 export class ProfileService {
-  private usersApiUrl = environment.apiUrl + '/api/users';
 
   private user: Observable<any>;
 
   constructor(private http: HttpClient,
               private loginService: LoginService) {
     this.user = this.update();
+  }
+
+  private getUsersApiUrl(): string {
+    return environment.apiUrl + '/api/users';
   }
 
   public refresh() {
@@ -85,7 +88,7 @@ export class ProfileService {
 
   private getUser(id: String): Observable<any> {
     // TODO: Add auth token!
-    return this.http.get<any>(this.usersApiUrl + "/" + id);
+    return this.http.get<any>(this.getUsersApiUrl() + "/" + id);
   }
 
   public addTraining(): Observable<any> {
@@ -114,7 +117,7 @@ export class ProfileService {
 
   private storeUser(user: any): Observable<any> {
     return this.http.put<any>(
-      this.usersApiUrl + "/" + user['id'],
+      this.getUsersApiUrl() + "/" + user['id'],
       user,
       { headers: new HttpHeaders({ 'Content-Type': 'application/json' }) });
   }

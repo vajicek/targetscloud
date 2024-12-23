@@ -5,7 +5,7 @@ WEBAPP_CONFIGURATION ?= production
 
 # SERVER WEBAPP
 serve_ng:
-	cd app && $(NG) serve --host 0.0.0.0
+	cd app && $(NG) serve --host 0.0.0.0 --ssl
 
 build_webapp:
 	cd app && $(NG) cache clean
@@ -20,7 +20,7 @@ add_component:
 # SERVER BACKEND
 serve_backend:
 	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
-	cd server && nodejs ./app.js \
+	cd server && ./run.sh \
 		-p 4443 \
 		-v
 
@@ -35,6 +35,7 @@ init:
 
 # RELEASE CONTAINER
 build_release:
+	rm -f $(PWD)/app/dist/app/browser/assets/config.json
 	docker build \
 	-t targetscloud-release \
 	-f ./Dockerfile .
@@ -70,7 +71,7 @@ devcontainer:
 	--name targetcloud-devcontainer \
 	-v $(PWD):/tmp/home \
 	-w /tmp/home \
-	-p 4200:4200 \
+	-p 4443:4443 \
 	-u $(UID):$(GID) \
 	targetscloud-devcontainer /bin/bash
 
