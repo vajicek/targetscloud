@@ -4,7 +4,7 @@ GID := $(shell id -g)
 WEBAPP_CONFIGURATION ?= production
 
 # SERVER WEBAPP
-serve_ng:
+serve_frontend:
 	cd app && $(NG) serve --host 0.0.0.0 --ssl
 
 build_webapp:
@@ -18,11 +18,20 @@ add_component:
 	cd app && $(NG) generate component $(COMPONENT)
 
 # SERVER BACKEND
-serve_backend:
+serve_backend_js:
+	rm $(PWD)/server/browser
 	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
 	cd server && ./run.sh \
 		-p 4443 \
 		-v
+
+serve_backend:
+	cd server && npm run dev -- -- \
+		-p 4443 \
+		-v
+
+build_backend:
+	cd server && npm run build
 
 # Project setup
 create:

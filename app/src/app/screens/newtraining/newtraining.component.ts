@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, startWith, map, of, mergeMap, lastValueFrom } from 'rxjs';
@@ -9,6 +9,8 @@ import { ProfileService } from "../../services/profile.service";
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-newtraining',
@@ -17,15 +19,27 @@ import { MatInputModule } from '@angular/material/input';
     ToolbarComponent,
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
 
     // Auto complete
-    MatInputModule,
     MatAutocompleteModule,
+
+    // UI Component
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
   ],
   templateUrl: './newtraining.component.html',
   styleUrl: './newtraining.component.css'
 })
 export class NewTrainingComponent implements OnInit {
+
+  trainingName: string = "";
+  selectedTargetType: string = "";
+  selectedDistance: string = "";
+  selectedSetsConfiguration: string = "";
+  collectArrowNumbers: boolean = false;
+  collectArrowNotes: boolean = false;
 
   trainingNameControl = new FormControl('');
   trainingNameFilteredSuggestions: Observable<string[]> = of();
@@ -40,7 +54,14 @@ export class NewTrainingComponent implements OnInit {
   onOkClick() {
     this.profileService.trainings()
       .pipe(mergeMap(async trainings => {
-        const _ = await lastValueFrom(this.profileService.addTraining());
+        const _ = await lastValueFrom(this.profileService.addTraining({
+          name: this.trainingName,
+          targetType: this.selectedTargetType,
+          distance: this.selectedDistance,
+          setsConfiguration: this.selectedSetsConfiguration,
+          collectArrowNumbers: false,
+          collectNotes: false
+        }));
         this.router.navigate(['/training', { training: trainings.length }]);
       }))
       .subscribe();

@@ -2,11 +2,14 @@
 	<app-toolbar title="New Training"></app-toolbar>
 	<div class="window">
 		<div class="form">
+
 			<div class="caption">Title/Note</div>
+
 			<mat-form-field class="edit">
 				<input type="text"
 					matInput
 					placeholder="Enter training name"
+					[(ngModel)]="trainingName"
 					[formControl]="trainingNameControl"
 					[matAutocomplete]="auto">
 				<mat-autocomplete hideSingleSelectionIndicator
@@ -19,16 +22,52 @@
 			</mat-form-field>
 
 			<div class="caption">Target/Distance/Sets</div>
-			<div class="buttons">
-				<div class="combo">122 cm</div>
-				<div class="combo">70m 12 x 6</div>
-			</div>
+
+			<mat-form-field class="target_distance_sets">
+				<mat-label>Target type</mat-label>
+				<mat-select [(value)]="selectedTargetType">
+					<mat-option value="tt_122">122 cm</mat-option>
+					<mat-option value="tt_80">80 cm</mat-option>
+					<mat-option value="tt_60">60 cm</mat-option>
+					<mat-option value="tt_40">40 cm</mat-option>
+					<mat-option value="tt_40_reduced">40 cm reduced</mat-option>
+					<mat-option value="tt_40_vegas">40 cm vegas</mat-option>
+				</mat-select>
+			</mat-form-field>
+
+			<mat-form-field class="target_distance_sets">
+				<mat-label>Distance</mat-label>
+				<mat-select [(value)]="selectedDistance">
+					<mat-option value="d_10">10 m</mat-option>
+					<mat-option value="d_18">18 m</mat-option>
+					<mat-option value="d_20">20 m</mat-option>
+					<mat-option value="d_25">25 m</mat-option>
+					<mat-option value="d_30">30 m</mat-option>
+					<mat-option value="d_40">40 m</mat-option>
+					<mat-option value="d_50">50 m</mat-option>
+					<mat-option value="d_60">60 m</mat-option>
+					<mat-option value="d_70">70 m</mat-option>
+				</mat-select>
+			</mat-form-field>
+
+			<mat-form-field class="target_distance_sets">
+				<mat-label>Sets</mat-label>
+				<mat-select [(value)]="selectedSetsConfiguration">
+					<mat-option value="s_10x3">10 x 3</mat-option>
+					<mat-option value="s_20x3">20 x 3</mat-option>
+					<mat-option value="s_5x6">5 x 6</mat-option>
+					<mat-option value="s_10x6">10 x 6</mat-option>
+					<mat-option value="s_6x6">6 x 6</mat-option>
+					<mat-option value="s_12x6">12 x 6</mat-option>
+					<mat-option value="s_any">any</mat-option>
+				</mat-select>
+			</mat-form-field>
 
 			<div class="caption">Options</div>
 
 			<div class="checkbox">
 				<div class="checkbox1">
-					<input type="checkbox">
+					<input type="checkbox" [(ngModel)]="collectArrowNumbers">
 				</div>
 				<div class="checkbox2">
 					Arrow numbers
@@ -40,7 +79,7 @@
 
 			<div class="checkbox">
 				<div class="checkbox1">
-					<input type="checkbox">
+					<input type="checkbox" [(ngModel)]="collectArrowNotes">
 				</div>
 				<div class="checkbox2">
 					Arrow note

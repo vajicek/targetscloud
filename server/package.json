@@ -1,8 +1,8 @@
 {
-	"name": "nodejs-image-demo",
+	"name": "nodejs-targets-cloud",
 	"version": "1.0.0",
-	"description": "nodejs image demo",
-	"author": "Sammy the Shark <sammy@example.com>",
+	"description": "Targets Cloud Backend",
+	"author": "Vaclav Krajicek <vaclav.krajicek@gmail.com>",
 	"license": "MIT",
 	"main": "app.js",
 	"keywords": [
@@ -21,5 +21,23 @@
 		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.7.3",
 		"pino": "^9.5.0"
+	},
+	"devDependencies": {
+		"@types/argparse": "^2.0.17",
+		"@types/bcryptjs": "^2.4.6",
+		"@types/cors": "^2.8.17",
+		"@types/express": "^5.0.0",
+		"@types/jsonwebtoken": "^9.0.7",
+		"@types/mongoose": "^5.11.97",
+		"@types/node": "^22.10.2",
+		"@types/pino": "^7.0.5",
+		"nodemon": "^3.1.9",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.7.2"
+	},
+	"scripts": {
+		"start": "node dist/app.js",
+		"dev": "nodemon src/app.ts",
+		"build": "tsc"
 	}
 }

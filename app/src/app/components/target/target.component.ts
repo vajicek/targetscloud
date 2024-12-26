@@ -1,15 +1,19 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, Renderer2 } from '@angular/core';
 import { ViewChild, ElementRef } from '@angular/core';
-import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 export interface Hit {
-  dist: number;
-  angle: number;
   points: number;
+  x: number;
+  y: number;
 }
 
 export interface Set {
   hits: Array<Hit>;
+}
+
+export interface TargetSetting {
+  targetTemplate: string;
 }
 
 @Component({
@@ -21,7 +25,7 @@ export interface Set {
 })
 export class TargetComponent {
 
-  @ViewChild('svgElement') svgElement!: ElementRef<SVGSVGElement>;
+  @ViewChild('targetElement') targetElement!: ElementRef<Element>;
 
   @Output() targetHitEvent = new EventEmitter<Hit>();
 
@@ -37,6 +41,16 @@ export class TargetComponent {
   _sets: Array<Set> = new Array<Set>();
 
   @Input()
+  set targetSetting(val: TargetSetting) {
+    this._targetSetting = val;
+  }
+  get targetSetting() {
+    return this._targetSetting;
+  }
+
+  _targetSetting: TargetSetting = { targetTemplate : ""};
+
+  @Input()
   set currentSet(val: number) {
     this._currentSet = val;
     this.redraw();
@@ -47,31 +61,64 @@ export class TargetComponent {
 
   _currentSet: number = 0;
 
+  constructor(
+    private http: HttpClient,
+    private renderer: Renderer2
+  ) { }
+
   ngAfterViewInit() {
-    this.redraw();
+    this.loadSvg(this._targetSetting.targetTemplate);
   }
 
-  redraw() {
-    if (this.svgElement == undefined) {
+  private loadSvg(filePath: string): void {
+    this.http
+      .get(filePath, { responseType: 'text' })
+      .subscribe({
+        next: (svgContent) => {
+          this.renderSvg(svgContent);
+          this.redraw();
+        },
+        error: (error) => {
+          console.error('Error loading SVG:', error);
+        }
+      });
+  }
+
+  private renderSvg(svgContent: string) {
+    const parser = new DOMParser();
+    const document = parser.parseFromString(svgContent, 'image/svg+xml');
+    const svgElement: HTMLElement = document.documentElement;
+    svgElement.onclick = (event) => this.onSvgClick(event, svgElement);
+    this.renderer.setStyle(svgElement, "width", "100%");
+    this.renderer.setStyle(svgElement, "height", "100%");
+
+    this.targetElement.nativeElement.innerHTML = '';
+    this.renderer.appendChild(this.targetElement.nativeElement, svgElement);
+  }
+
+  private redraw() {
+    if (this.targetElement == undefined) {
+      return;
+    }
+
+    const svgElement = this.targetElement.nativeElement.querySelector("#target");
+    if (svgElement == undefined) {
       return;
     }
 
     // remove hits
-    var hitsElement = this.svgElement.nativeElement.getElementById("hits");
-    while (hitsElement.lastChild) {
+    var hitsElement = svgElement.querySelector("#hits");
+    while (hitsElement && hitsElement.lastChild) {
       hitsElement.removeChild(hitsElement.lastChild);
     }
 
     // add hits
     this._sets.forEach((set, setIndex) => {
       set.hits.forEach((hit, hitIndex) => {
-        const x = hit.dist * Math.cos(hit.angle) + 10;
-        const y = hit.dist * Math.sin(hit.angle) + 10;
-
         let newElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        newElement.setAttribute('fill-opacity', String(setIndex / (this._sets.length - 1)));
-        newElement.setAttribute('cx', String(x));
-        newElement.setAttribute('cy', String(y));
+        newElement.setAttribute('fill-opacity', String((setIndex + 1) / (this._sets.length - 1)));
+        newElement.setAttribute('cx', String(hit.x));
+        newElement.setAttribute('cy', String(hit.y));
         newElement.setAttribute('r', '0.4');
 
         if (setIndex == this.currentSet) {
@@ -80,27 +127,49 @@ export class TargetComponent {
           newElement.setAttribute('fill', 'orange');
         }
 
-        hitsElement.appendChild(newElement);
+        hitsElement?.append(newElement);
       });
     });
   }
 
-  onSvgClick(event: MouseEvent) {
-    const w = this.svgElement.nativeElement.width.baseVal.value;
-    const h = this.svgElement.nativeElement.height.baseVal.value;
+  private onSvgClick(event: MouseEvent, svgElement: Element) {
+    const screenSpacePoint = (svgElement as SVGSVGElement).createSVGPoint();
+    screenSpacePoint.x = event.clientX;
+    screenSpacePoint.y = event.clientY;
 
-    const rect = this.svgElement.nativeElement.getBoundingClientRect();
-
-    const x = 20 * (event.clientX - rect.left - w / 2) / w;
-    const y = 20 * (event.clientY - rect.top - h / 2) / h;
-
-    const distance = Math.sqrt(x ** 2 + y ** 2);
-    const angle = Math.atan2(y, x);
+    const bestHitZoneNode = this.getBestHitZoneNode(svgElement, screenSpacePoint);
+    const transformedPoint = screenSpacePoint.matrixTransform((svgElement as SVGSVGElement).getScreenCTM()?.inverse());
 
     this.targetHitEvent.emit({
-      dist: distance,
-      angle: angle,
-      points: Math.max(10 - Math.floor(distance), 0)
+      points: bestHitZoneNode == null ? 0 : this.parseZoneNumber((bestHitZoneNode as SVGGeometryElement).id),
+      x: transformedPoint.x,
+      y: transformedPoint.y
     });
+  }
+
+  private getBestHitZoneNode(svgElement: Element, screenSpacePoint: DOMPoint): SVGGeometryElement | null {
+    var bestHitZoneNode: SVGGeometryElement | null = null;
+
+    const zones = svgElement.querySelectorAll('[id^="Zone"]');
+    zones.forEach((zone, key, parent) => {
+      const zoneElement = (zone as SVGGeometryElement);
+      const elementToScreenSpace = zoneElement.getScreenCTM();
+      if (elementToScreenSpace) {
+        const zoneElementSpacePoint = screenSpacePoint.matrixTransform(elementToScreenSpace.inverse());
+        const isInsideFill = zoneElement.isPointInFill(zoneElementSpacePoint);
+        if (isInsideFill) {
+          if (bestHitZoneNode == null || this.parseZoneNumber(zone.id) > this.parseZoneNumber(bestHitZoneNode.id)) {
+            bestHitZoneNode = zoneElement;
+          }
+        }
+      }
+    });
+
+    return bestHitZoneNode;
+  }
+
+  private parseZoneNumber(input: string): number {
+    const match = input.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   }
 }

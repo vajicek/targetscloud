@@ -4,6 +4,7 @@ import { Observable, map, mergeMap, of } from 'rxjs';
 
 import { ToolbarComponent } from '../../components/toolbar/toolbar.component';
 import {
+  TargetSetting,
   TargetComponent,
   Set,
   Hit
@@ -25,15 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 export class TrainingComponent {
 
   // data
-  public training: Training = {
-    date: "string",
-    title: "string",
-    score: -10,
-    id: "string",
-    sets: [],
-    setsPerTraining: -1,
-    hitsPerSet: -1,
-  };
+  public training: Training | null = null;
 
   // UI
 
@@ -48,6 +41,7 @@ export class TrainingComponent {
   public hitsPerSet: number = -1;
   public pointsTotal: number = -1;
   public points: number = -1;
+  public targetSetting: TargetSetting = { targetTemplate: "assets/targets/target_wa40_reduced.svg" };
 
   constructor(private route: ActivatedRoute,
     private profileService: ProfileService) { }
@@ -69,6 +63,11 @@ export class TrainingComponent {
   }
 
   private getTargetSets(): Array<Set> {
+    if (this.training == null) {
+      console.warn("training undefined");
+      return [];
+    }
+
     this.setsPerTraining = this.training.setsPerTraining;
     this.hitsPerSet = this.training.hitsPerSet;
     this.pointsTotal = this.training.hitsPerSet * this.training.setsPerTraining * 10;
@@ -86,6 +85,11 @@ export class TrainingComponent {
   }
 
   private addSetIfNeeded(increment: number) {
+    if (this.training == null) {
+      console.warn("training undefined");
+      return;
+    }
+
     let sets = this.training.sets;
     if (this.currentSet + increment >= sets.length &&
       this.currentSet + increment < this.setsPerTraining) {
@@ -104,6 +108,11 @@ export class TrainingComponent {
   }
 
   private getCurrentSetHits(increment: number): Array<Hit> {
+    if (this.training == null) {
+      console.warn("training undefined");
+      return [];
+    }
+
     // initialization
     if (this.currentSet < 0) {
       this.currentSet = this.training.sets.length - 1;
@@ -166,16 +175,17 @@ export class TrainingComponent {
 
   private toHit(hit: ProfileHit): Hit {
     return {
-      dist: hit.dist,
-      angle: hit.angle,
-      points: 10 - Math.floor(hit.dist)
+      x: hit.x,
+      y: hit.y,
+      points: hit.points
     };
   }
 
   private fromHit(hit: Hit): ProfileHit {
     return {
-      dist: hit.dist,
-      angle: hit.angle
+      x: hit.x,
+      y: hit.y,
+      points: hit.points
     };
   }
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:cc="http://web.resource.org/cc/"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns:svg="http://www.w3.org/2000/svg"
+	xmlns="http://www.w3.org/2000/svg"
+	version="1.0"
+	width="122cm"
+	height="122cm"
+	viewBox="-61 -61 122 122"
+	id="target">
+
+	<circle class="round" id="Zone1" r="61" stroke="#000" stroke-width=".2" fill="#ffffff"/>
+	<circle class="round" id="Zone2" r="54.9" stroke="#000" stroke-width=".2" fill="#ffffff"/>
+	<circle class="round" id="Zone3" r="48.8" stroke-width=".2" fill="#000000"/>
+	<circle class="round" id="Zone4" r="42.7" stroke="#fff" stroke-width=".2" fill="#000000"/>
+	<circle class="round" id="Zone5" r="36.6" stroke-width=".2" fill="#00B5E2"/>
+	<circle class="round" id="Zone6" r="30.5" stroke="#000" stroke-width=".2" fill="#00B5E2"/>
+	<circle class="round" id="Zone7" r="24.4" stroke="#000" stroke-width=".2" fill="#EF3340"/>
+	<circle class="round" id="Zone8" r="18.3" stroke="#000" stroke-width=".2" fill="#EF3340"/>
+	<circle class="round" id="Zone9" r="12.2" stroke="#000" stroke-width=".2" fill="#FBE122"/>
+	<circle class="round" id="Zone10" r="6.1" stroke="#000" stroke-width=".2" fill="#FBE122"/>
+
+	<g id="hits">
+	</g>
+</svg>

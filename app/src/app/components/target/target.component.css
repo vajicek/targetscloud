@@ -1,4 +1,5 @@
 .target {
+	position: relative;
 	width: 100%;
 	cursor: pointer;
 	pointer-events: all;

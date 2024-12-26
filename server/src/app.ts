@@ -1,18 +1,18 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const { ArgumentParser } = require('argparse');
-const crypto = require('crypto');
-const path = require('path');
-const https = require('https');
-const fs = require('fs');
-const pino = require('pino');
-const { OAuth2Client } = require('google-auth-library');
+import { ArgumentParser } from 'argparse';
+import { OAuth2Client } from 'google-auth-library';
+import bcrypt from 'bcryptjs';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import crypto from 'crypto';
+import express, { Request, Response } from 'express';
+import fs from 'fs';
+import https from 'https';
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import path from 'path';
+import pino from 'pino';
 
-const schemas = require('./schemas');
+import { schemas } from './schemas';
 
 
 const logger = pino({
@@ -26,38 +26,38 @@ const logger = pino({
 });
 
 
-async function getAllUsers(req, res, usersModel) {
+async function getAllUsers(req: any, res: any, usersModel: any) {
 	try {
 		logger.info("Getting all users");
 		const data = await usersModel.find();
 		res.json(data);
-	} catch (error) {
+	} catch (error: any) {
 		res.status(500).json({ error: error.message });
 	}
 }
 
 
-async function getUser(req, res, usersModel) {
+async function getUser(req: any, res: any, usersModel: any) {
 	try {
 		logger.info(`Getting user id=${req.params.id}`);
 		const data = await usersModel.find({ id: String(req.params.id) })
 			.exec();
 		res.json(data);
-	} catch (error) {
+	} catch (error: any) {
 		res.status(500)
 			.json({ error: error.message });
 	}
 }
 
 
-async function updateUser(req, res, usersModel) {
+async function updateUser(req: any, res: any, usersModel: any) {
 	try {
 		logger.info(`Updating user id=${req.params.id}`);
 		const retVal = await usersModel.updateOne(
 			{ id: String(req.params.id) },
 			req.body);
 		res.json(retVal);
-	} catch (error) {
+	} catch (error: any) {
 		logger.error(error);
 		res.status(500)
 			.json({ error: error.message });
@@ -65,24 +65,19 @@ async function updateUser(req, res, usersModel) {
 };
 
 
-function connectToMongo(args) {
+function connectToMongo(args: any): Map<string, any> {
 	// MongoDB Connection
 	mongoose.connect(args.mongodb)
 		.then(() => logger.info("Connected to MongoDB"))
 		.catch(err => logger.error("MongoDB connection error:", err));
 
 	// MongoDB Models
-	const usersModel = mongoose.model('users', schemas.userSchema);
-	const userAuthsModel = mongoose.model('user_auths', schemas.userAuthSchema);
-
-	return {
-		"users": usersModel,
-		"userAuths": userAuthsModel
-	}
+	return new Map<string, any>(Array.from(schemas,
+		([schemaName, schema]) => [schemaName, mongoose.model(schemaName, schema)]));
 }
 
 
-function loginResponse(user, res, secret) {
+function loginResponse(user: any, res: any, secret: string) {
 	// return application token
 	logger.info("Login successful");
 	const token = jwt.sign({
@@ -95,7 +90,7 @@ function loginResponse(user, res, secret) {
 }
 
 
-async function login(req, res, usersModel, userAuthsModel, secret) {
+async function login(req: any, res: any, usersModel: any, userAuthsModel: any, secret: string) {
 	logger.info("Logging in");
 
 	const { username, password } = req.body;
@@ -107,7 +102,7 @@ async function login(req, res, usersModel, userAuthsModel, secret) {
 	logger.info("Validating credentials");
 	if (userAuth.length === 0 ||
 		!(await bcrypt.compare(password, userAuth[0].password))) {
-		msg = 'Access denied. Invalid username or password!';
+		const msg: string = 'Access denied. Invalid username or password!';
 		logger.error(msg);
 		return res.status(401)
 			.send(msg);
@@ -120,7 +115,7 @@ async function login(req, res, usersModel, userAuthsModel, secret) {
 }
 
 
-async function createIfNeeded(payload, usersModel) {
+async function createIfNeeded(payload: any, usersModel: any) {
 
 	const username = payload.sub;
 	const name = payload.name;
@@ -149,16 +144,22 @@ async function createIfNeeded(payload, usersModel) {
 		"friends": [],
 		"chats": [],
 		"groups": []
-	}).then((doc) => {
+	}).then((doc: any) => {
 		logger.debug(`Record inserted: ${doc}`);
 		return doc;
-	}).catch((err) => {
+	}).catch((err: any) => {
 		logger.error(`Error inserting record: ${err}`);
 	});
 }
 
 
-async function loginWithGoogle(googleClient, googleClientId, req, res, usersModel, secret) {
+async function loginWithGoogle(googleClient: any,
+	googleClientId: any,
+	req: any,
+	res: any,
+	usersModel: any,
+	secret: string) {
+
 	logger.info("Logging in with Google token");
 
 	logger.info("Validating token");
@@ -173,7 +174,12 @@ async function loginWithGoogle(googleClient, googleClientId, req, res, usersMode
 }
 
 
-function authenticationInterceptor(req, res, next, secret, exceptions) {
+function authenticationInterceptor(req: any,
+	res: any,
+	next: any,
+	secret: any,
+	exceptions: any): any {
+
 	const authHeader = req.headers.authorization;
 	const token = authHeader && authHeader.split(' ')[1];
 
@@ -184,7 +190,7 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 	}
 
 	if (!token) {
-		msg = "Access denied. No token provided.";
+		const msg: string = "Access denied. No token provided.";
 		logger.error(msg);
 		return res.status(401)
 			.json({ message: msg });
@@ -195,7 +201,7 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 		req.user = decoded;
 		next();
 	} catch (error) {
-		msg = "Access denied. Invalid token."
+		const msg: string = "Access denied. Invalid token."
 		logger.error(msg);
 		res.status(403)
 			.json({ message: msg });
@@ -203,7 +209,7 @@ function authenticationInterceptor(req, res, next, secret, exceptions) {
 }
 
 
-function serveApi(args, models) {
+function serveApi(args: any, models: Map<string, any>) {
 	// Setup google authentication client
 	logger.info(`Setting up google authentication client, googleclientid=${args.googleclientid}`);
 	const googleClient = new OAuth2Client(args.googleclientid);
@@ -212,15 +218,30 @@ function serveApi(args, models) {
 	logger.info(`Setting up route for /api`);
 	const router = express.Router();
 	router.get('/users', (req, res) =>
-		getAllUsers(req, res, models["users"]));
+		getAllUsers(req,
+			res,
+			models.get("users")));
 	router.get('/users/:id', (req, res) =>
-		getUser(req, res, models["users"]));
+		getUser(req,
+			res,
+			models.get("users")));
 	router.put('/users/:id', (req, res) =>
-		updateUser(req, res, models["users"]));
+		updateUser(req,
+			res,
+			models.get("users")));
 	router.post('/login', (req, res) =>
-		login(req, res, models["users"], models["userAuths"], args.secret));
+		login(req,
+			res,
+			models.get("users"),
+			models.get("user_auths"),
+			args.secret));
 	router.post('/loginWithGoogle', (req, res) =>
-		loginWithGoogle(googleClient, args.googleclientid, req, res, models["users"], args.secret));
+		loginWithGoogle(googleClient,
+			args.googleclientid,
+			req,
+			res,
+			models.get("users"),
+			args.secret));
 
 	// Setup express
 	logger.info(`Setting up express`);
@@ -229,7 +250,11 @@ function serveApi(args, models) {
 
 	logger.info(`Setting up /api`);
 	app.use('/api', (req, res, next) =>
-		authenticationInterceptor(req, res, next, args.secret, ["/login", "/loginWithGoogle"]));
+		authenticationInterceptor(req,
+			res,
+			next,
+			args.secret,
+			["/login", "/loginWithGoogle"]));
 	app.use(bodyParser.json());
 	app.use('/api', router);
 
@@ -277,7 +302,7 @@ function serveApi(args, models) {
 }
 
 
-function getArgs() {
+function getArgs(): any {
 	const parser = new ArgumentParser({
 		description: 'TargetsCloud backend'
 	});
@@ -315,13 +340,13 @@ function getArgs() {
 
 
 function main() {
-	args = getArgs();
+	const args: any = getArgs();
 
 	if (args.verbose) {
 		logger.level = 'debug';
 	}
 
-	models = connectToMongo(args)
+	const models: Map<string, any> = connectToMongo(args);
 	serveApi(args, models);
 }
 

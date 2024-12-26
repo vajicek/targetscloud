@@ -6,17 +6,32 @@ import { environment } from '../../environments/environment';
 import { LoginService } from "./login.service";
 
 export interface Hit {
-  dist: number;
-  angle: number;
+  x: number;
+  y: number;
+  points: number;
 }
 
 export interface Set {
   hits: Array<Hit>;
 }
 
+export interface NewTraining {
+  name: string;
+  targetType: string;
+  distance: string;
+  setsConfiguration: string;
+  collectArrowNumbers: boolean;
+  collectNotes: boolean;
+}
+
 export interface Training {
   date: string;
   title: string;
+  targetType: string;
+  distance: string;
+  setsConfiguration: string;
+  collectArrowNumbers: boolean;
+  collectNotes: boolean;
   score: number;
   id: string;
   sets: Array<Set>;
@@ -87,18 +102,22 @@ export class ProfileService {
   }
 
   private getUser(id: String): Observable<any> {
-    // TODO: Add auth token!
     return this.http.get<any>(this.getUsersApiUrl() + "/" + id);
   }
 
-  public addTraining(): Observable<any> {
+  public addTraining(newTraining: NewTraining): Observable<any> {
     return this.user.pipe(mergeMap(user => {
       user["trainings"].length
       user["trainings"].push({
-        "id": `${user["trainings"].length}`,
-        "timestamp": "123",
+        "id": `${user["trainings"].length}`, //TODO: UUID? empty?
+        "timestamp": Date.now(),
         "training_type": "type",
-        "title": "title",
+        "title": newTraining.name,
+        "target_type": newTraining.targetType,
+        "distance": newTraining.distance,
+        "sets_configuration": newTraining.setsConfiguration,
+        "collect_arrow_numbers": newTraining.collectArrowNumbers,
+        "collect_notes": newTraining.collectNotes,
         "score": "1",
         "sets": [{"hits": []}]
       });
@@ -136,7 +155,7 @@ export class ProfileService {
 
     let score = sets.flatMap((set: any) =>
       set["hits"].map((hit: any) =>
-        10 - Math.floor(hit["dist"])))
+        Math.floor(hit["points"])))
       .reduce((accumulator: number, currentValue: number) =>
         accumulator + currentValue, 0);
     return score;
@@ -146,6 +165,11 @@ export class ProfileService {
     return {
       date: "1/1/2024",
       title: training["title"],
+      targetType: training["target_type"],
+      distance: training["distance"],
+      setsConfiguration: training["sets_configuration"],
+      collectArrowNumbers: training["collect_arrow_numbers"],
+      collectNotes: training["collect_notes"],
       score: this.computeScore(training),
       id: training["id"],
       sets: this.toSets(training["sets"]),
@@ -173,8 +197,9 @@ export class ProfileService {
 
   private toHit(hit: any): Hit {
     return {
-      dist: hit["dist"],
-      angle: hit["angle"]
+      x: hit.x,
+      y: hit.y,
+      points: hit.points,
     };
   }
 }

@@ -67,6 +67,12 @@
 	text-align: center;
 }
 
+.target_distance_sets {
+	width: 30%;
+	padding-right: 0.25em;
+	padding-left: 0.25em;
+}
+
 .checkbox {
 	display: grid;
 	grid-template-columns: min-content 1fr;
