@@ -4,11 +4,16 @@ EXPOSE 80
 
 WORKDIR /tmp/home
 
-COPY app/dist/app ./
-COPY server/package*.json ./
-COPY server/*.js ./
-COPY server/run.sh ./
+# install backend
+COPY server/dist ./dist
 
+# install backend dependencies
+COPY server/package*.json ./
 RUN npm install
 
+# install frontend
+COPY app/dist/app ./dist
+
+# install bootstrap script
+COPY server/run.sh ./
 ENTRYPOINT ["./run.sh"]

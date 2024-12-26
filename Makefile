@@ -18,14 +18,16 @@ add_component:
 	cd app && $(NG) generate component $(COMPONENT)
 
 # SERVER BACKEND
-serve_backend_js:
-	rm $(PWD)/server/browser
-	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
+serve_backend_run:
+	rm -f $(PWD)/server/dist/browser
+	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/dist/browser
 	cd server && ./run.sh \
 		-p 4443 \
 		-v
 
 serve_backend:
+	rm -f $(PWD)/server/browser
+	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
 	cd server && npm run dev -- -- \
 		-p 4443 \
 		-v
@@ -44,6 +46,7 @@ init:
 
 # RELEASE CONTAINER
 build_release:
+	rm -f $(PWD)/server/browser
 	rm -f $(PWD)/app/dist/app/browser/assets/config.json
 	docker build \
 	-t targetscloud-release \
@@ -56,7 +59,8 @@ run_release:
 	--name targetscloud-release \
 	--network host \
 	-v /etc/letsencrypt/archive/www.targetscloud.org:/tmp/home/certs \
-	-p 443:443 \
+	-e API_URL="https://localhost" \
+	-e GOOGLE_CLIENT_ID=$(GOOGLE_CLIENT_ID) \
 	targetscloud-release \
 	-p 443 \
 	-k /tmp/home/certs/privkey1.pem \
@@ -77,16 +81,15 @@ devcontainer:
 	-it \
 	--network=host \
 	--rm \
-	--name targetcloud-devcontainer \
+	--name targetscloud-devcontainer \
 	-v $(PWD):/tmp/home \
 	-w /tmp/home \
-	-p 4443:4443 \
 	-u $(UID):$(GID) \
 	targetscloud-devcontainer /bin/bash
 
 exec_to_devcontainer:
 	docker exec \
-	-it targetcloud-devcontainer \
+	-it targetscloud-devcontainer \
 	/bin/bash
 
 run_mongo:
