@@ -32,7 +32,6 @@ const userSchema = new mongoose.Schema({
 	}],
 	chats: [{
 		id: String,
-		with: String,
 	}],
 	groups: [{
 		id: String
@@ -46,9 +45,27 @@ const userAuthSchema = new mongoose.Schema({
 	password: String
 });
 
-// TODO: groups, chats
+const chatSchema = new mongoose.Schema({
+	id: String,
+	display_name: String,
+	participants: [{
+		id: String,
+		timestamp: Number,
+		role: String
+	}],
+	messages: [{
+		id: String,
+		timestamp: Number,
+		text: String,
+		delivered: [{
+			id: String,
+			timestamp: Number
+		}]
+	}]
+});
 
 export const schemas: Map<string, mongoose.Schema> = new Map([
 	["users", userSchema],
-	["user_auths", userAuthSchema]
+	["user_auths", userAuthSchema],
+	["chats", chatSchema],
 ]);

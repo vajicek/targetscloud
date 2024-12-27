@@ -5,49 +5,49 @@ WEBAPP_CONFIGURATION ?= production
 
 # SERVER WEBAPP
 serve_frontend:
-	cd app && $(NG) serve --host 0.0.0.0 --ssl
+	cd frontend && $(NG) serve --host 0.0.0.0 --ssl
 
-build_webapp:
-	cd app && $(NG) cache clean
-	cd app && $(NG) build \
+build_frontend:
+	cd frontend && $(NG) cache clean
+	cd frontend && $(NG) build \
 		--configuration $(WEBAPP_CONFIGURATION) \
 		--optimization true \
 		--output-hashing none
 
 add_component:
-	cd app && $(NG) generate component $(COMPONENT)
+	cd frontend && $(NG) generate component $(COMPONENT)
 
 # SERVER BACKEND
 serve_backend_run:
-	rm -f $(PWD)/server/dist/browser
-	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/dist/browser
-	cd server && ./run.sh \
+	rm -f $(PWD)/backend/dist/browser
+	ln -fs $(PWD)/frontend/dist/app/browser $(PWD)/backend/dist/browser
+	cd backend && ./run.sh \
 		-p 4443 \
 		-v
 
 serve_backend:
-	rm -f $(PWD)/server/browser
-	ln -fs $(PWD)/app/dist/app/browser $(PWD)/server/browser
-	cd server && npm run dev -- -- \
+	rm -f $(PWD)/backend/src/browser
+	ln -fs $(PWD)/frontend/dist/app/browser $(PWD)/backend/src/browser
+	cd backend && npm run dev -- -- \
 		-p 4443 \
 		-v
 
 build_backend:
-	cd server && npm run build
+	cd backend && npm run build
 
 # Project setup
 create:
 	npm install @angular/cli
-	$(NG) new app
+	$(NG) new frontend
 
 # Run once
 init:
-	cd app && npm install @angular/cli
+	cd frontend && npm install @angular/cli
 
 # RELEASE CONTAINER
 build_release:
-	rm -f $(PWD)/server/browser
-	rm -f $(PWD)/app/dist/app/browser/assets/config.json
+	rm -f $(PWD)/backend/browser
+	rm -f $(PWD)/frontend/dist/app/browser/assets/config.json
 	docker build \
 	-t targetscloud-release \
 	-f ./Dockerfile .
@@ -76,7 +76,7 @@ build_devcontainer:
 	. \
 	-t targetscloud-devcontainer
 
-devcontainer:
+run_devcontainer:
 	docker run \
 	-it \
 	--network=host \
@@ -104,15 +104,15 @@ run_mongo:
 		-d mongo:latest
 
 create_certs:
-	openssl genrsa -out server/key.pem 2048
+	openssl genrsa -out backend/key.pem 2048
 	openssl req -new -newkey rsa:2048 -nodes \
-		-keyout server/key.pem \
-		-out server/csr.pem \
+		-keyout backend/key.pem \
+		-out backend/csr.pem \
 		-subj "/C=US/ST=Prague/L=Prague/O=VajSoft/OU=HQ/CN=localhost/emailAddress=admin@targetscloud.org"
 	openssl x509 -req -days 365 \
-		-in server/csr.pem \
-		-signkey server/key.pem \
-		-out server/cert.pem
+		-in backend/csr.pem \
+		-signkey backend/key.pem \
+		-out backend/cert.pem
 	openssl x509 -outform PEM \
-		-in server/cert.pem \
-		-out server/selfsigned.crt
+		-in backend/cert.pem \
+		-out backend/selfsigned.crt

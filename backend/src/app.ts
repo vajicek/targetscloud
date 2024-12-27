@@ -208,6 +208,21 @@ function authenticationInterceptor(req: any,
 	}
 }
 
+function getFriends(req: any, res: any, usersModel: any) {
+	logger.info(`Getting friends of user id=${req.params.id}`);
+}
+
+function getGroups(req: any, res: any, usersModel: any, groupsModel: any) {
+	logger.info(`Getting groups of user id=${req.params.id}`);
+}
+
+function getChat(req: any, res: any, usersModel: any, groupsModel: any) {
+	logger.info(`Getting chat chatId=${req.params.chatId} of user id=${req.params.id}`);
+}
+
+function sendMessage(req: any, res: any, usersModel: any, groupsModel: any) {
+	logger.info(`Sending message as user id=${req.params.id}`);
+}
 
 function serveApi(args: any, models: Map<string, any>) {
 	// Setup google authentication client
@@ -225,6 +240,31 @@ function serveApi(args: any, models: Map<string, any>) {
 		getUser(req,
 			res,
 			models.get("users")));
+
+	//TODO:
+	router.get('/users/:id/friends', (req, res) =>
+		getFriends(req,
+			res,
+			models.get("users")));
+	//TODO:
+	router.get('/users/:id/groups', (req, res) =>
+		getGroups(req,
+			res,
+			models.get("users"),
+			models.get("chats")));
+	//TODO:
+	router.get('/users/:id/chats/:chatId', (req, res) =>
+		getChat(req,
+			res,
+			models.get("users"),
+			models.get("chats")));
+	//TODO:
+	router.put('/users/:id/sendmessage', (req, res) =>
+		sendMessage(req,
+			res,
+			models.get("users"),
+			models.get("chats")));
+
 	router.put('/users/:id', (req, res) =>
 		updateUser(req,
 			res,
