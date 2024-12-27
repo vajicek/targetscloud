@@ -5,6 +5,8 @@ import { Observable, from, mergeMap, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LoginService } from "./login.service";
 
+import { IUser } from 'model/types';
+
 export interface Hit {
   x: number;
   y: number;

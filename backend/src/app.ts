@@ -13,7 +13,7 @@ import path from 'path';
 import pino from 'pino';
 
 import { schemas } from './schemas';
-
+import { IUser } from 'model/types';
 
 const logger = pino({
 	level: process.env.PINO_LOG_LEVEL || 'info',

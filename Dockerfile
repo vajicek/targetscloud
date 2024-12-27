@@ -4,16 +4,21 @@ EXPOSE 80
 
 WORKDIR /tmp/home
 
+# install model
+COPY model/dist ./model/dist
+
 # install backend
-COPY server/dist ./dist
+COPY backend/dist ./backend/dist
 
 # install backend dependencies
-COPY server/package*.json ./
-RUN npm install
+COPY backend/package*.json ./backend/
+RUN cd backend && npm install
 
 # install frontend
-COPY app/dist/app ./dist
+COPY frontend/dist/app ./backend/dist
 
 # install bootstrap script
-COPY server/run.sh ./
+COPY backend/run.sh ./backend
+
+WORKDIR /tmp/home/backend
 ENTRYPOINT ["./run.sh"]

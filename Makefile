@@ -3,11 +3,15 @@ UID := $(shell id -u)
 GID := $(shell id -g)
 WEBAPP_CONFIGURATION ?= production
 
+build_model:
+	cd model && npm run build
+
 # SERVER WEBAPP
 serve_frontend:
 	cd frontend && $(NG) serve --host 0.0.0.0 --ssl
 
 build_frontend:
+	cd frontend && npm install
 	cd frontend && $(NG) cache clean
 	cd frontend && $(NG) build \
 		--configuration $(WEBAPP_CONFIGURATION) \
@@ -33,6 +37,7 @@ serve_backend:
 		-v
 
 build_backend:
+	cd backend && npm install
 	cd backend && npm run build
 
 # Project setup
