@@ -116,14 +116,14 @@ function getArgs(): any {
 }
 
 
-function main() {
+async function main() {
 	const args: any = getArgs();
 
 	if (args.verbose) {
 		logger.level = 'debug';
 	}
 
-	const models: Map<string, any> = connectToMongo(args.mongodb);
+	const models: Map<string, any> = await connectToMongo(args.mongodb);
 	serveApi(args, models);
 }
 
