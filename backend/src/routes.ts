@@ -6,18 +6,22 @@ import * as controller from './controller';
 
 
 export function setupRoutes(
-	googleclientid: string,
+	googleClientId: string,
 	secret: string,
 	models: Map<string, any>): express.Router {
 
 	// Setup google authentication client
-	logger.info(`Setting up google authentication client, googleclientid=${googleclientid}`);
-	const googleClient = new OAuth2Client(googleclientid);
+	logger.info(`Setting up google authentication client, googleClientId=${googleClientId}`);
+	const googleClient = new OAuth2Client(googleClientId);
 
 	logger.info(`Setting up route for /api`);
 	const router = express.Router();
 	router.get('/users', (req, res) =>
 		controller.getAllUsers(req,
+			res,
+			models.get("users")));
+	router.get('/users/search', (req, res) =>
+		controller.searchUsers(req,
 			res,
 			models.get("users")));
 	router.get('/users/:id', (req, res) =>
@@ -28,11 +32,23 @@ export function setupRoutes(
 		controller.getFriends(req,
 			res,
 			models.get("users")));
+	router.get('/users/:id/friendship', (req, res) =>
+		controller.friendshipRequest(req,
+			res,
+			models.get("users")));
+
+	// list groups and group participants for user
 	router.get('/users/:id/groups', (req, res) =>
 		controller.getGroups(req,
 			res,
 			models.get("users"),
 			models.get("chats")));
+	// create, delete, modify group
+	router.get('/users/:id/group', (req, res) =>
+		controller.groupRequest(req,
+			res,
+			models.get("users")));
+
 	router.get('/users/:id/chats/:chatId', (req, res) =>
 		controller.getChat(req,
 			res,
@@ -55,7 +71,7 @@ export function setupRoutes(
 			secret));
 	router.post('/loginWithGoogle', (req, res) =>
 		controller.loginWithGoogle(googleClient,
-			googleclientid,
+			googleClientId,
 			req,
 			res,
 			models.get("users"),

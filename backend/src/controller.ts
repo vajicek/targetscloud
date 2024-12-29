@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+
+import { IFriendshipStatus, IUser } from 'model/types';
 
 import { logger } from './logging';
 
@@ -11,6 +14,20 @@ export async function getAllUsers(req: any, res: any, usersModel: any) {
 		res.json(data);
 	} catch (error: any) {
 		res.status(500).json({ error: error.message });
+	}
+}
+
+
+export async function searchUsers(req: any, res: any, usersModel: any) {
+	try {
+		logger.info(`Searching users query.name=${req.query.name}`);
+		const namePattern = new RegExp(`.*${req.query.name}.*`);
+		const data = await usersModel.find({ name: { $regex: namePattern } })
+			.exec();
+		res.json(data);
+	} catch (error: any) {
+		res.status(500)
+			.json({ error: error.message });
 	}
 }
 
@@ -140,13 +157,97 @@ export async function loginWithGoogle(googleClient: any,
 }
 
 
-export function getFriends(req: any, res: any, usersModel: any) {
-	logger.info(`Getting friends of user id=${req.params.id}`);
+export async function getFriends(req: any, res: any, usersModel: any) {
+	try {
+		logger.info(`Getting user id=${req.params.id}`);
+		const user = await (usersModel as mongoose.Model<IUser>)
+			.findOne({ id: String(req.params.id) })
+			.exec();
+
+		logger.info(`Getting friends of user id=${req.params.id}`);
+		const friendIds = user?.friendships
+			.filter(friendship => friendship.status == IFriendshipStatus.ACCEPTED)
+			.map(friendship => friendship.id);
+		const friends = await usersModel.find({ id: { $in: friendIds } });
+
+		res.json(friends);
+	} catch (error: any) {
+		res.status(500)
+			.json({ error: error.message });
+	}
+}
+
+async function updateFriendships(requesterId: string,
+	receiverId: string,
+	status: IFriendshipStatus,
+	usersModel: mongoose.Model<IUser>) {
+
+	const requester = await usersModel.findOne({ id: String(requesterId) }).exec();
+	const receiver = await usersModel.findOne({ id: String(receiverId) }).exec();
+
+	logger.info(`Updating requester's friendships`);
+	await usersModel.updateOne({ id: requesterId }, {
+		friendships: requester?.friendships
+			.filter(friendship => friendship.id != receiverId)
+			.concat([{
+				id: receiverId,
+				status: status,
+				outgoing: true,
+			}])
+	});
+
+	logger.info(`Updating receiver's friendships`);
+	await usersModel.updateOne({ id: receiverId }, {
+		friendships: receiver?.friendships
+			.filter(friendship => friendship.id != requesterId)
+			.concat([{
+				id: requesterId,
+				status: status,
+				outgoing: false,
+			}])
+	});
+}
+
+export async function friendshipRequest(req: any, res: any, usersModel: any) {
+	try {
+		if (req.query.action == 'request') {
+			logger.info(`Making friendship request by user id=${req.params.id} to id=${req.query.id}`);
+			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.PENDING, usersModel);
+		} else if (req.query.action == 'accept') {
+			logger.info(`Accepting friendship request by user id=${req.query.id} to id=${req.params.id}`);
+			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.ACCEPTED, usersModel);
+		} else if (req.query.action == 'reject') {
+			logger.info(`Rejecting friendship request by user id=${req.query.id} to id=${req.params.id}`);
+			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.REJECTED, usersModel);
+		} else {
+			throw new Error(`Unknown action parameter = {req.query.action}`)
+		}
+		res.json([]);
+	} catch (error: any) {
+		console.log(error);
+		res.status(500)
+			.json({ error: error.message });
+	}
 }
 
 
 export function getGroups(req: any, res: any, usersModel: any, groupsModel: any) {
 	logger.info(`Getting groups of user id=${req.params.id}`);
+}
+
+
+export function groupRequest(req: any, res: any, usersModel: any, groupsModel: any) {
+	logger.info(`Getting groups of user id=${req.params.id}`);
+
+	try {
+//		if (req.query.action == 'request') {
+		res.json([]);
+	} catch (error: any) {
+		console.log(error);
+		res.status(500)
+			.json({ error: error.message });
+	}
+
 }
 
 

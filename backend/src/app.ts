@@ -13,51 +13,63 @@ import { authenticationInterceptor } from './auth';
 import { connectToMongo } from './models';
 
 
-function serveApi(args: any, models: Map<string, any>) {
+export function getApp(secret: string,
+	googleClientId: string,
+	models: Map<string, any>): express.Express {
 
 	// Setup router for /api
-	const router: express.Router = setupRoutes(args.googleclientid,
-		args.secret,
+	const router: express.Router = setupRoutes(googleClientId,
+		secret,
 		models);
 
 	// Setup express
-	logger.info(`Setting up express`);
+	logger.info('Setting up express');
 	const app = express();
 	app.use(cors());
 
-	logger.info(`Setting up /api`);
+	logger.info('Setting up /api');
 	app.use('/api', (req, res, next) =>
 		authenticationInterceptor(req,
 			res,
 			next,
-			args.secret,
+			secret,
 			["/login", "/loginWithGoogle"]));
 	app.use(bodyParser.json());
 	app.use('/api', router);
 
 	// Logging access
-	logger.info(`Setting up access log`);
+	logger.info('Setting up access log');
 	app.use((req, res, next) => {
 		logger.debug(`${req.method} ${req.url} - ${req.ip}`);
 		next();
 	});
 
 	// Setup hosting of Angular App
-	logger.info(`Setting up static pages routing`);
+	logger.info('Setting up static pages routing');
 	app.use(express.static(path.join(__dirname, 'browser')));
 	app.get('*', (req, res) => {
 		res.sendFile(path.join(__dirname, 'browser', 'index.html'));
 	});
+	return app;
+}
+
+
+function serveApi(args: any, models: Map<string, any>) {
+
+	// Setup Express
+	const app: express.Express = getApp(args.googleclientid,
+		args.secret,
+		models);
 
 	// SSL Cert
-	logger.info(`Getting SSL cert and key`);
+	logger.info('Getting SSL cert and key');
 	const options = {
 		key: fs.readFileSync(args.privatekey),
 		cert: fs.readFileSync(args.cert)
 	};
 
 	// Start server
-	logger.info(`Starting server`);
+	logger.info('Starting server');
 	const server = https.createServer(options, app)
 		.listen(args.port, () => {
 			logger.info(`TargetsCloud backend listening on port ${args.port}!`)
@@ -128,4 +140,7 @@ async function main() {
 }
 
 
-main();
+if (require.main === module) {
+	main();
+}
+

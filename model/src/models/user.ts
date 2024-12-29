@@ -1,8 +1,17 @@
 
 import { ITraining } from './training';
 
-export interface IFriend {
+export enum IFriendshipStatus {
+	PENDING = "PENDING",
+	ACCEPTED = "ACCEPTED",
+	REJECTED = "REJECTED",
+	CANCELED = "CANCELED"
+}
+
+export interface IFriendship {
 	id: string;
+	status: IFriendshipStatus;
+	outgoing: boolean;
 };
 
 export interface IChatRef {
@@ -20,7 +29,7 @@ export interface IUser {
 	picture: string;
 	id: string;
 	trainings: Array<ITraining>;
-	friends: Array<IFriend>;
+	friendships: Array<IFriendship>;
 	chats: Array<IChatRef>;
 	groups: Array<IGroupRef>;
 };

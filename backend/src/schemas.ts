@@ -6,7 +6,8 @@ import {
 	ITraining,
 	ISet,
 	IHit,
-	IFriend,
+	IFriendship,
+	IFriendshipStatus,
 	IChatRef,
 	IGroupRef,
 	IParticipant,
@@ -41,8 +42,10 @@ const TrainingSchema = new mongoose.Schema<ITraining>({
 	sets: { type: [SetSchema], required: true }
 });
 
-const FriendSchema = new mongoose.Schema<IFriend>({
+const FriendshipSchema = new mongoose.Schema<IFriendship>({
 	id: { type: String, required: true },
+	status: { type: String, enum: Object.values(IFriendshipStatus), required: true },
+	outgoing: { type: Boolean, required: true },
 });
 
 const ChatRefSchema = new mongoose.Schema<IChatRef>({
@@ -60,10 +63,10 @@ const UserSchema = new mongoose.Schema<IUser>({
 	picture: { type: String, required: true },
 	id: { type: String, required: true },
 	trainings: { type: [TrainingSchema], required: true },
-	friends: { type: [FriendSchema], required: true },
+	friendships: { type: [FriendshipSchema], required: true },
 	chats: { type: [ChatRefSchema], required: true },
 	groups: { type: [GroupRefSchema], required: true }
-})
+});
 
 const ParticipantSchema = new mongoose.Schema<IParticipant>({
 	id: { type: String, required: true },
@@ -96,75 +99,7 @@ const UserAuthSchema = new mongoose.Schema<IUserAuth>({
 	username: { type: String, required: true },
 	password: { type: String, required: true }
 });
-/*
-const userSchema = new mongoose.Schema({
-	name: String,
-	display_name: String,
-	email: String,
-	picture: String,
-	id: String,
-	trainings: [{
-		id: String,
-		timestamp: Number,
-		training_type: String,
-		title: String,
-		target_type: String,
-		distance: String,
-		sets_configuration: String,
-		collect_arrow_numbers: Boolean,
-		collect_notes: Boolean,
-		score: Number,
-		sets: [{
-			no: Number,
-			hits: [{
-				x: Number,
-				y: Number,
-				points: Number,
-				note: String
-			}]
-		}]
-	}],
-	friends: [{
-		id: String
-	}],
-	chats: [{
-		id: String,
-	}],
-	groups: [{
-		id: String
-	}]
-});
 
-
-const userAuthSchema = new mongoose.Schema({
-	id: String,
-	username: String,
-	password: String
-});
-
-const chatSchema = new mongoose.Schema({
-	id: String,
-	display_name: String,
-	participants: [{
-		id: String,
-		timestamp: Number,
-		role: String
-	}],
-	messages: [{
-		id: String,
-		timestamp: Number,
-		text: String,
-		delivered: [{
-			id: String,
-			timestamp: Number
-		}]
-	}]
-});
-*/
-
-// ["users", userSchema],
-// ["user_auths", userAuthSchema],
-// ["chats", chatSchema],
 
 export const schemas: Map<string, mongoose.Schema> = new Map([
 	["users", UserSchema as mongoose.Schema],
