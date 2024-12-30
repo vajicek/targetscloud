@@ -35,7 +35,8 @@ export function setupRoutes(
 	router.get('/users/:id/friendship', (req, res) =>
 		controller.friendshipRequest(req,
 			res,
-			models.get("users")));
+			models.get("users"),
+			models.get("chats")));
 
 	// list groups and group participants for user
 	router.get('/users/:id/groups', (req, res) =>

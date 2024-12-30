@@ -8,18 +8,20 @@ export enum IFriendshipStatus {
 	CANCELED = "CANCELED"
 }
 
-export interface IFriendship {
-	id: string;
-	status: IFriendshipStatus;
-	outgoing: boolean;
-};
-
 export interface IChatRef {
 	id: string;
 };
 
+export interface IFriendship {
+	id: string;
+	status: IFriendshipStatus;
+	outgoing: boolean;
+	chat: IChatRef;
+};
+
 export interface IGroupRef {
 	id: string;
+	chat: IChatRef;
 };
 
 export interface IUser {
@@ -30,7 +32,6 @@ export interface IUser {
 	id: string;
 	trainings: Array<ITraining>;
 	friendships: Array<IFriendship>;
-	chats: Array<IChatRef>;
 	groups: Array<IGroupRef>;
 };
 

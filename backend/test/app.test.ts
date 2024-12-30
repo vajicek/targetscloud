@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
-import { connectToMongo, disconnectFromMongo } from '../src/models';
+import { connectToMongo, disconnectFromMongo, User } from '../src/models';
 import { getApp } from '../src/app';
 
 import { IUser } from 'model/types';
@@ -41,7 +41,7 @@ describe('User API', () => {
 			secret,
 			{ expiresIn: '1h' });
 		const models = await connectToMongo(mongoDbUri);
-		app = getApp(secret, "", models);
+		app = getApp(secret, "");
 	});
 
 	afterAll(async () => {
@@ -59,7 +59,6 @@ describe('User API', () => {
 			id: uuidv4(),
 			trainings: [],
 			friendships: [],
-			chats: [],
 			groups: []
 		};
 		await db.collection<IUser>("users")

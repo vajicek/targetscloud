@@ -45,7 +45,6 @@ describe('Test User Model', () => {
 			id: "0001",
 			trainings: [],
 			friendships: [],
-			chats: [],
 			groups: []
 		};
 		await db.collection<IUser>("users")

@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
-import { IFriendshipStatus, IUser } from 'model/types';
+import { IFriendshipStatus, IUser, IChat } from 'model/types';
 
 import { logger } from './logging';
 
@@ -156,7 +157,6 @@ export async function loginWithGoogle(googleClient: any,
 	loginResponse(user, res, secret);
 }
 
-
 export async function getFriends(req: any, res: any, usersModel: any) {
 	try {
 		logger.info(`Getting user id=${req.params.id}`);
@@ -180,6 +180,7 @@ export async function getFriends(req: any, res: any, usersModel: any) {
 async function updateFriendships(requesterId: string,
 	receiverId: string,
 	status: IFriendshipStatus,
+	chatRef: any,
 	usersModel: mongoose.Model<IUser>) {
 
 	const requester = await usersModel.findOne({ id: String(requesterId) }).exec();
@@ -193,6 +194,7 @@ async function updateFriendships(requesterId: string,
 				id: receiverId,
 				status: status,
 				outgoing: true,
+				chat: chatRef
 			}])
 	});
 
@@ -204,21 +206,40 @@ async function updateFriendships(requesterId: string,
 				id: requesterId,
 				status: status,
 				outgoing: false,
+				chat: chatRef
 			}])
 	});
 }
 
-export async function friendshipRequest(req: any, res: any, usersModel: any) {
+function createChat(chatsModel: mongoose.Model<IChat>): mongoose.Model<IChat> {
+	return new chatsModel({
+		id: uuidv4(),
+		display_name: "xxx",
+		participants: [
+			new ParticipantSchema({}),
+			new ParticipantSchema({})
+		],
+		messages: [],
+	});
+}
+
+export async function friendshipRequest(req: any, res: any, usersModel: any, chatsModel: any) {
 	try {
 		if (req.query.action == 'request') {
 			logger.info(`Making friendship request by user id=${req.params.id} to id=${req.query.id}`);
-			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.PENDING, usersModel);
+			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.PENDING, null, usersModel);
 		} else if (req.query.action == 'accept') {
 			logger.info(`Accepting friendship request by user id=${req.query.id} to id=${req.params.id}`);
-			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.ACCEPTED, usersModel);
+
+
+
+			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.ACCEPTED, null, usersModel);
+
+			// TODO: , and chat
+
 		} else if (req.query.action == 'reject') {
 			logger.info(`Rejecting friendship request by user id=${req.query.id} to id=${req.params.id}`);
-			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.REJECTED, usersModel);
+			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.REJECTED, null, usersModel);
 		} else {
 			throw new Error(`Unknown action parameter = {req.query.action}`)
 		}
@@ -231,15 +252,39 @@ export async function friendshipRequest(req: any, res: any, usersModel: any) {
 }
 
 
-export function getGroups(req: any, res: any, usersModel: any, groupsModel: any) {
+export async function getGroups(req: any, res: any, usersModel: any, groupsModel: any) {
 	logger.info(`Getting groups of user id=${req.params.id}`);
+	try {
+		logger.info(`Getting user id=${req.params.id}`);
+		const user = await(usersModel as mongoose.Model<IUser>)
+			.findOne({ id: String(req.params.id) })
+			.exec();
+
+		// TODO: get all groups for user
+
+		// logger.info(`Getting friends of user id=${req.params.id}`);
+		// const friendIds = user?.friendships
+		// 	.filter(friendship => friendship.status == IFriendshipStatus.ACCEPTED)
+		// 	.map(friendship => friendship.id);
+		// const friends = await usersModel.find({ id: { $in: friendIds } });
+
+		// res.json(friends);
+	} catch (error: any) {
+		res.status(500)
+			.json({ error: error.message });
+	}
 }
 
 
-export function groupRequest(req: any, res: any, usersModel: any, groupsModel: any) {
+export function groupRequest(req: any, res: any, usersModel: any/*, groupsModel: any*/) {
 	logger.info(`Getting groups of user id=${req.params.id}`);
-
 	try {
+
+		// TODO: create group, and chat
+		// TODO: invite to group
+		// TODO: kick out of group
+		// TODO: destroy group
+
 //		if (req.query.action == 'request') {
 		res.json([]);
 	} catch (error: any) {
@@ -247,15 +292,34 @@ export function groupRequest(req: any, res: any, usersModel: any, groupsModel: a
 		res.status(500)
 			.json({ error: error.message });
 	}
-
 }
 
 
 export function getChat(req: any, res: any, usersModel: any, groupsModel: any) {
 	logger.info(`Getting chat chatId=${req.params.chatId} of user id=${req.params.id}`);
+	try {
+
+		// TODO: get check with all messages
+
+		res.json([]);
+	} catch (error: any) {
+		console.log(error);
+		res.status(500)
+			.json({ error: error.message });
+	}
 }
 
 
 export function sendMessage(req: any, res: any, usersModel: any, groupsModel: any) {
 	logger.info(`Sending message as user id=${req.params.id}`);
+	try {
+
+		// TODO: send message, notify members
+
+		res.json([]);
+	} catch (error: any) {
+		console.log(error);
+		res.status(500)
+			.json({ error: error.message });
+	}
 }

@@ -42,21 +42,23 @@ const TrainingSchema = new mongoose.Schema<ITraining>({
 	sets: { type: [SetSchema], required: true }
 });
 
-const FriendshipSchema = new mongoose.Schema<IFriendship>({
-	id: { type: String, required: true },
-	status: { type: String, enum: Object.values(IFriendshipStatus), required: true },
-	outgoing: { type: Boolean, required: true },
-});
-
 const ChatRefSchema = new mongoose.Schema<IChatRef>({
 	id: { type: String, required: true },
 });
 
-const GroupRefSchema = new mongoose.Schema<IGroupRef>({
+const FriendshipSchema = new mongoose.Schema<IFriendship>({
 	id: { type: String, required: true },
+	status: { type: String, enum: Object.values(IFriendshipStatus), required: true },
+	outgoing: { type: Boolean, required: true },
+	chat: { type: ChatRefSchema, required: false }
 });
 
-const UserSchema = new mongoose.Schema<IUser>({
+const GroupRefSchema = new mongoose.Schema<IGroupRef>({
+	id: { type: String, required: true },
+	chat: { type: ChatRefSchema, required: true }
+});
+
+export const UserSchema = new mongoose.Schema<IUser>({
 	name: { type: String, required: true },
 	display_name: { type: String, required: true },
 	email: { type: String, required: true },
@@ -64,7 +66,6 @@ const UserSchema = new mongoose.Schema<IUser>({
 	id: { type: String, required: true },
 	trainings: { type: [TrainingSchema], required: true },
 	friendships: { type: [FriendshipSchema], required: true },
-	chats: { type: [ChatRefSchema], required: true },
 	groups: { type: [GroupRefSchema], required: true }
 });
 
@@ -87,14 +88,14 @@ const MessageSchema = new mongoose.Schema<IMessage>({
 	delivered: { type: [MessageDeliverySchema], required: true },
 });
 
-const ChatSchema = new mongoose.Schema<IChat>({
+export const ChatSchema = new mongoose.Schema<IChat>({
 	id: { type: String, required: true },
 	display_name: { type: String, required: true },
 	participants: { type: [ParticipantSchema], required: true },
 	messages: { type: [MessageSchema], required: true },
 });
 
-const UserAuthSchema = new mongoose.Schema<IUserAuth>({
+export const UserAuthSchema = new mongoose.Schema<IUserAuth>({
 	id: { type: String, required: true },
 	username: { type: String, required: true },
 	password: { type: String, required: true }
