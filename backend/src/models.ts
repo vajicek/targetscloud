@@ -5,16 +5,10 @@ import { IUser, IUserAuth, IChat } from 'model/types';
 
 
 export async function connectToMongo(mongodb: string): Promise<void> {
-//}: Promise<Map<string, any>> {
 	// MongoDB Connection
 	return mongoose.connect(mongodb)
 		.then(() => logger.info("Connected to MongoDB"))
 		.catch(err => logger.error("MongoDB connection error:", err));
-		// MongoDB Models
-		// .then(() => {
-		// 	return new Map<string, any>(Array.from(schemas,
-		// 		([schemaName, schema]) => [schemaName, mongoose.model(schemaName, schema)]));
-		// });
 }
 
 export async function disconnectFromMongo(): Promise<any> {

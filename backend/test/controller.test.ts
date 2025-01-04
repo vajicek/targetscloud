@@ -57,7 +57,7 @@ describe('Test User Model', () => {
 			status: stub().returnsThis(),
 			json: stub(),
 		};
-		await getAllUsers(req, res, models.get("users"));
+		await getAllUsers(req, res);
 		await disconnectFromMongo();
 
 		// Assert

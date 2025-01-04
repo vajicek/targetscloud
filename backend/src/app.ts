@@ -10,17 +10,14 @@ import path from 'path';
 import { logger } from './logging';
 import { setupRoutes } from './routes';
 import { authenticationInterceptor } from './auth';
-import { connectToMongo } from './models';
 
 
 export function getApp(secret: string,
-	googleClientId: string,
-	models: Map<string, any>): express.Express {
+	googleClientId: string): express.Express {
 
 	// Setup router for /api
 	const router: express.Router = setupRoutes(googleClientId,
-		secret,
-		models);
+		secret);
 
 	// Setup express
 	logger.info('Setting up express');
@@ -54,12 +51,10 @@ export function getApp(secret: string,
 }
 
 
-function serveApi(args: any, models: Map<string, any>) {
+function serveApi(args: any) {
 
 	// Setup Express
-	const app: express.Express = getApp(args.googleclientid,
-		args.secret,
-		models);
+	const app: express.Express = getApp(args.googleclientid, args.secret);
 
 	// SSL Cert
 	logger.info('Getting SSL cert and key');
@@ -135,8 +130,7 @@ async function main() {
 		logger.level = 'debug';
 	}
 
-	const models: Map<string, any> = await connectToMongo(args.mongodb);
-	serveApi(args, models);
+	serveApi(args);
 }
 
 

@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
-import { connectToMongo, disconnectFromMongo, User } from '../src/models';
+import { connectToMongo, disconnectFromMongo } from '../src/models';
 import { getApp } from '../src/app';
 
 import { IUser } from 'model/types';
@@ -66,14 +66,18 @@ describe('User API', () => {
 		return record;
 	}
 
+	let authRequest = (uri: string) => {
+		return supertest(app)
+			.get(uri)
+			.set('Authorization', `Bearer ${authToken}`);
+	}
+
 	it('should fetch all users via REST', async () => {
 		// Arrange
 		const record = await storeUser("user name");
 
 		// Act
-		const response = await supertest(app)
-			.get('/api/users')
-			.set('Authorization', `Bearer ${authToken}`);
+		const response = await authRequest('/api/users');
 
 		// Assert
 		expect(response.status).toBe(200);
@@ -88,10 +92,8 @@ describe('User API', () => {
 		const record4 = await storeUser("user name");
 
 		// Act
-		const response = await supertest(app)
-			.get('/api/users/search')
-			.query({ name: 'abc' })
-			.set('Authorization', `Bearer ${authToken}`);
+		const response = await authRequest('/api/users/search')
+			.query({ name: 'abc' });
 
 		// Assert
 		expect(response.status).toBe(200);
@@ -102,48 +104,74 @@ describe('User API', () => {
 		const user1 = await storeUser("user1");
 		const user2 = await storeUser("user2");
 
-		// Act
-
 		// No friends
-		const friendList1 = await supertest(app)
-			.get(`/api/users/${user1.id}/friends`)
-			.set('Authorization', `Bearer ${authToken}`);
+		const friendList1 = await authRequest(`/api/users/${user1.id}/friends`);
 
 		expect(friendList1.status).toBe(200);
 		expect(friendList1.body).toHaveLength(0);
 
-		const response1 = await supertest(app)
-			.get(`/api/users/${user1.id}/friendship`)
-			.query({ id: user2.id, action: 'request' })
-			.set('Authorization', `Bearer ${authToken}`);
+		const response1 = await authRequest(`/api/users/${user1.id}/friendship`)
+			.query({ id: user2.id, action: 'request' });
 
 		// Still no friends
-		const friendList2 = await supertest(app)
-			.get(`/api/users/${user1.id}/friends`)
-			.set('Authorization', `Bearer ${authToken}`);
+		const friendList2 = await authRequest(`/api/users/${user1.id}/friends`);
 
 		expect(friendList2.status).toBe(200);
 		expect(friendList2.body).toHaveLength(0);
 
-		const response2 = await supertest(app)
-			.get(`/api/users/${user2.id}/friendship`)
-			.query({ id: user1.id, action: 'accept' })
-			.set('Authorization', `Bearer ${authToken}`);
+		const response2 = await authRequest(`/api/users/${user2.id}/friendship`)
+			.query({ id: user1.id, action: 'accept' });
 
 		// One friend
-		const friendList3 = await supertest(app)
-			.get(`/api/users/${user1.id}/friends`)
-			.set('Authorization', `Bearer ${authToken}`);
+		const friendList3 = await authRequest(`/api/users/${user1.id}/friends`);
 
 		expect(friendList3.status).toBe(200);
 		expect(friendList3.body).toHaveLength(1);
 
 		// Friendship is symmetric in this case
-		const friendList4 = await supertest(app)
-			.get(`/api/users/${user2.id}/friends`)
-			.set('Authorization', `Bearer ${authToken}`);
+		const friendList4 = await authRequest(`/api/users/${user2.id}/friends`);
 
 		expect(friendList4.status).toBe(200);
 		expect(friendList4.body).toHaveLength(1);
 	});
+
+	it('should create group via REST', async () => {
+		const user1 = await storeUser("user1");
+		const user2 = await storeUser("user2");
+
+		// No groups
+		const groupList1 = await authRequest(`/api/users/${user1.id}/groups`);
+
+		expect(groupList1.status).toBe(200);
+		expect(groupList1.body).toHaveLength(0);
+
+		await authRequest(`/api/users/${user1.id}/group`)
+			.query({ name: "My group", action: 'create' });
+
+		// One group
+		const groupList2 = await authRequest(`/api/users/${user1.id}/groups`);
+
+		expect(groupList2.status).toBe(200);
+		expect(groupList2.body).toHaveLength(1);
+
+		// user2 has no groups
+		const groupList3 = await authRequest(`/api/users/${user2.id}/groups`);
+
+		expect(groupList3.status).toBe(200);
+		expect(groupList3.body).toHaveLength(0);
+
+		// Invite user2, twice
+		await authRequest(`/api/users/${user1.id}/group`)
+			.query({ groupId: groupList2.body[0].id, action: 'invite', userId: user2.id });
+		await authRequest(`/api/users/${user1.id}/group`)
+			.query({ groupId: groupList2.body[0].id, action: 'invite', userId: user2.id });
+
+		// user2 has one group (invitation)
+		const groupList4 = await authRequest(`/api/users/${user2.id}/groups`);
+
+		expect(groupList4.status).toBe(200);
+		expect(groupList4.body).toHaveLength(1);
+		expect(groupList4.body[0]["display_name"]).toBe("My group");
+	});
+
 });

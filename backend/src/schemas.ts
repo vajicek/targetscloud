@@ -100,10 +100,3 @@ export const UserAuthSchema = new mongoose.Schema<IUserAuth>({
 	username: { type: String, required: true },
 	password: { type: String, required: true }
 });
-
-
-export const schemas: Map<string, mongoose.Schema> = new Map([
-	["users", UserSchema as mongoose.Schema],
-	["user_auths", UserAuthSchema as mongoose.Schema],
-	["chats", ChatSchema as mongoose.Schema]
-]);

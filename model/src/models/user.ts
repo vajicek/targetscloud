@@ -6,7 +6,13 @@ export enum IFriendshipStatus {
 	ACCEPTED = "ACCEPTED",
 	REJECTED = "REJECTED",
 	CANCELED = "CANCELED"
-}
+};
+
+export enum IGroupMembershipStatus {
+	PENDING = "PENDING",
+	ACCEPTED = "ACCEPTED",
+	REJECTED = "REJECTED",
+};
 
 export interface IChatRef {
 	id: string;
@@ -21,6 +27,7 @@ export interface IFriendship {
 
 export interface IGroupRef {
 	id: string;
+	status: IGroupMembershipStatus;
 	chat: IChatRef;
 };
 
