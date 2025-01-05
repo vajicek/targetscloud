@@ -260,7 +260,7 @@ export async function getGroups(req: any, res: any) {
 		const user = await User.findOne({ id: String(req.params.id) })
 			.exec();
 		const groupChatIds = user?.groups.map(group => group.chat.id);
-		const groupsChats = await Chat.find({ id: groupChatIds })
+		const groupsChats = await Chat.find({ id: { $in: groupChatIds } })
 			.exec();
 		res.json(groupsChats);
 	} catch (error: any) {
@@ -285,24 +285,33 @@ function createGroupChat(creatorUserId: string, groupName: string): any {
 	});
 }
 
-async function createGroup(creatorUserId: string, groupName: string) {
+async function createGroup(creatorUserId: string, groupName: string, res: any) {
 	logger.info(`Creating group ${groupName} for user id=${creatorUserId}`);
-	const user = await User.findOne({ id: creatorUserId })
-		.exec();
+
+	// create group chat
 	const groupChat = await createGroupChat(creatorUserId, groupName);
-	await User.updateOne({ id: creatorUserId }, {
-		groups: user?.groups.concat([{
-			id: uuidv4(),
-			status: IGroupMembershipStatus.ACCEPTED,
-			chat: {
-				id: groupChat.id
-			}
-		}])
-	});
+
+	// update creator's groups
+	await User.updateOne(
+		{ "id": creatorUserId },
+		{
+			"$push": {
+				groups: {
+					'id': uuidv4(),
+					'status': IGroupMembershipStatus.PENDING,
+					'chat': {
+						id: groupChat.id
+					},
+				}
+			},
+		}
+	);
+
+	res.json([]);
 }
 
 
-async function inviteUsers(userId: string, groupId: string, userIds: Array<string>) {
+async function inviteUsers(userId: string, groupId: string, userIds: Array<string>, res: any) {
 	logger.info(`Inviting users ${userIds} to a group ${groupId} by user id=${userId}`);
 
 	const user = await User.findOne({ id: userId })
@@ -336,16 +345,144 @@ async function inviteUsers(userId: string, groupId: string, userIds: Array<strin
 			}
 		);
 	}
+
+	res.json([]);
 }
 
 
-async function kickUsers(userId: string, groupId: string, userIds: Array<string>) {
+async function kickUsers(userId: string, groupId: string, userIds: Array<string>, res: any) {
+	logger.info(`User id=${userId} kicking users ids=${userIds} from group groupId=${groupId}`);
 
+	// get chat id
+	const user = await User.findOne({ id: userId })
+		.exec();
+	const groupRef = user?.groups
+		.find(groupRef => groupRef.id == groupId)
+
+	// modify user
+	await User.updateOne(
+		{
+			"id": { $in: userIds },
+			'groups': { $elemMatch: { 'id': groupId } }
+		}, {
+		"$set": {
+			"status": IGroupMembershipStatus.KICKED,
+		}
+	}
+	);
+
+	// modify chat
+	await Chat.updateOne(
+		{
+			id: groupRef?.chat.id
+		}, {
+		$pull: {
+			participants: { id: { $in: userIds } }
+		}
+	}
+	);
+
+	res.json([]);
 }
 
 
-async function destroyGroup(userId: string, groupId: string) {
+async function destroyGroup(userId: string, groupId: string, res: any) {
+	logger.info(`User id=${userId} destroying group groupId=${groupId}`);
 
+	// get chat id
+	const user = await User.findOne({ id: userId })
+		.exec();
+	const groupRef = user?.groups
+		.find(groupRef => groupRef.id == groupId)
+
+	// get chat participants
+	const chat = await Chat.findOne({ id: groupRef?.chat.id })
+		.exec();
+	const groupUserIds = chat?.participants
+		.map(participant => participant.id);
+
+	// remove chat group from user groups
+	await User.updateOne(
+		{
+			"id": { $in: groupUserIds },
+			'groups': { $elemMatch: { 'id': groupId } }
+		}, {
+		"$set": {
+			"status": IGroupMembershipStatus.DESTROYED,
+		}
+	}
+	);
+
+	await Chat.updateOne(
+		{
+			id: groupRef?.chat.id
+		}, {
+		"$set": {
+			participants: []
+		}
+	})
+		.exec();
+
+	res.json([]);
+}
+
+
+async function acceptInvitation(userId: string, groupId: string, res: any) {
+	logger.info(`User id=${userId} accepts invitation to group groupId=${groupId}`);
+
+	// get chat id
+	const user = await User.findOne({ id: userId })
+		.exec();
+	const groupRef = user?.groups
+		.find(groupRef => groupRef.id == groupId)
+
+	// modify user
+	await User.updateOne(
+		{
+			"id": userId,
+			'groups': { $elemMatch: { 'id': groupId } }
+		}, {
+		"$set": {
+			"status": IGroupMembershipStatus.ACCEPTED,
+		}
+	}
+	);
+
+	// modify chat
+	await Chat.updateOne(
+		{
+			id: groupRef?.chat.id
+		}, {
+		"$push": {
+			participants: {
+				id: userId,
+				timestamp: Date.now(),
+				role: "user"
+			}
+		}
+	}
+	);
+
+	res.json([]);
+}
+
+
+async function rejectInvitation(userId: string, groupId: string, res: any) {
+	logger.info(`User id=${userId} rejects invitation to group groupId=${groupId}`);
+
+	// modify user
+	await User.updateOne(
+		{
+			"id": userId,
+			'groups': { $elemMatch: { 'id': groupId } }
+		}, {
+		"$set": {
+			"status": IGroupMembershipStatus.REJECTED,
+		}
+	}
+	);
+
+	res.json([]);
 }
 
 
@@ -353,16 +490,18 @@ export async function groupRequest(req: any, res: any) {
 	logger.info(`Modifying groups of user id=${req.params.id}`);
 	try {
 		if (req.query.action == 'create') {
-			await createGroup(req.params.id, req.query.name);
+			await createGroup(req.params.id, req.query.name, res);
 		} else if (req.query.action == 'invite') {
-			await inviteUsers(req.params.id, req.query.groupId, [req.query.userId]);
+			await inviteUsers(req.params.id, req.query.groupId, [req.query.userId], res);
 		} else if (req.query.action == 'kick') {
-			await kickUsers(req.params.id, req.query.groupId, [req.query.userId]);
+			await kickUsers(req.params.id, req.query.groupId, [req.query.userId], res);
 		} else if (req.query.action == 'destroy') {
-			await destroyGroup(req.params.id, req.query.groupId);
+			await destroyGroup(req.params.id, req.query.groupId, res);
+		} else if (req.query.action == 'accept') {
+			await acceptInvitation(req.params.id, req.query.groupId, res);
+		} else if (req.query.action == 'reject') {
+			await rejectInvitation(req.params.id, req.query.groupId, res);
 		}
-
-		res.json([]);
 	} catch (error: any) {
 		console.log(error);
 		res.status(500)

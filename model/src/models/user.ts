@@ -12,6 +12,8 @@ export enum IGroupMembershipStatus {
 	PENDING = "PENDING",
 	ACCEPTED = "ACCEPTED",
 	REJECTED = "REJECTED",
+	KICKED = "KICKED",
+	DESTROYED = "DESTROYED",
 };
 
 export interface IChatRef {

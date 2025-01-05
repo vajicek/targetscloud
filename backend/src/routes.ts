@@ -21,15 +21,16 @@ export function setupRoutes(
 		controller.searchUsers(req, res));
 	router.get('/users/:id', (req, res) =>
 		controller.getUser(req, res));
+	router.put('/users/:id', (req, res) =>
+		controller.updateUser(req, res));
+
 	router.get('/users/:id/friends', (req, res) =>
 		controller.getFriends(req, res));
 	router.get('/users/:id/friendship', (req, res) =>
 		controller.friendshipRequest(req, res));
 
-	// list groups and group participants for user
 	router.get('/users/:id/groups', (req, res) =>
 		controller.getGroups(req, res));
-	// create, delete, modify group
 	router.get('/users/:id/group', (req, res) =>
 		controller.groupRequest(req, res));
 
@@ -37,8 +38,7 @@ export function setupRoutes(
 		controller.getChat(req, res));
 	router.put('/users/:id/sendmessage', (req, res) =>
 		controller.sendMessage(req, res));
-	router.put('/users/:id', (req, res) =>
-		controller.updateUser(req, res));
+
 	router.post('/login', (req, res) =>
 		controller.login(req, res, secret));
 	router.post('/loginWithGoogle', (req, res) =>

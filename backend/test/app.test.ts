@@ -172,6 +172,17 @@ describe('User API', () => {
 		expect(groupList4.status).toBe(200);
 		expect(groupList4.body).toHaveLength(1);
 		expect(groupList4.body[0]["display_name"]).toBe("My group");
+
+		// still not accepted invitation
+		expect(groupList4.body[0].participants.length).toBe(1);
+
+		// accept invitation
+		await authRequest(`/api/users/${user2.id}/group`)
+			.query({ groupId: groupList2.body[0].id, action: 'accept' });
+
+		const groupList5 = await authRequest(`/api/users/${user2.id}/groups`);
+
+		expect(groupList5.body[0].participants.length).toBe(2);
 	});
 
 });
