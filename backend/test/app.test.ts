@@ -194,18 +194,20 @@ describe('User API', () => {
 		await authRequest(`/api/users/${user2.id}/friendship`)
 			.query({ id: user1.id, action: 'accept' });
 
+		// Check friendship
 		const updatedUser1 = await authRequest(`/api/users/${user1.id}`);
 		const updatedUser2 = await authRequest(`/api/users/${user1.id}`);
 
 		expect(updatedUser1.body[0].friendships[0].id)
 			.toBe(updatedUser2.body[0].friendships[0].id)
 
-		// get chat
+		// Get chat
 		const chatId = updatedUser1.body[0].friendships[0].chat.id;
 		const chat = await authRequest(`/api/users/${user1.id}/chats/${chatId}`);
 		expect(chat.body.participants.length).toBe(2);
 		expect(chat.body.messages.length).toBe(0);
 
+		// Send message
 		await supertest(app)
 			.put(`/api/users/${user1.id}/sendmessage`)
 			.set('Authorization', `Bearer ${authToken}`)
@@ -213,5 +215,8 @@ describe('User API', () => {
 
 		const updatedChat = await authRequest(`/api/users/${user1.id}/chats/${chatId}`);
 		expect(updatedChat.body.messages.length).toBe(1);
+
+		const user2Chat = await authRequest(`/api/users/${user2.id}/chats/${chatId}`);
+		expect(user2Chat.body.messages.length).toBe(1);
 	});
 });
