@@ -6,7 +6,7 @@ export interface IParticipant {
 };
 
 export interface IMessageDelivery {
-	id: string;
+	user_id: string;
 	timestamp: number;
 };
 

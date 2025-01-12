@@ -76,7 +76,7 @@ const ParticipantSchema = new mongoose.Schema<IParticipant>({
 });
 
 const MessageDeliverySchema = new mongoose.Schema<IMessageDelivery>({
-	id: { type: String, required: true },
+	user_id: { type: String, required: true },
 	timestamp: { type: Number, required: true },
 });
 

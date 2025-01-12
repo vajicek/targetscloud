@@ -185,4 +185,33 @@ describe('User API', () => {
 		expect(groupList5.body[0].participants.length).toBe(2);
 	});
 
+	it('should get chat messages via REST', async () => {
+		const user1 = await storeUser("user1");
+		const user2 = await storeUser("user2");
+
+		await authRequest(`/api/users/${user1.id}/friendship`)
+			.query({ id: user2.id, action: 'request' });
+		await authRequest(`/api/users/${user2.id}/friendship`)
+			.query({ id: user1.id, action: 'accept' });
+
+		const updatedUser1 = await authRequest(`/api/users/${user1.id}`);
+		const updatedUser2 = await authRequest(`/api/users/${user1.id}`);
+
+		expect(updatedUser1.body[0].friendships[0].id)
+			.toBe(updatedUser2.body[0].friendships[0].id)
+
+		// get chat
+		const chatId = updatedUser1.body[0].friendships[0].chat.id;
+		const chat = await authRequest(`/api/users/${user1.id}/chats/${chatId}`);
+		expect(chat.body.participants.length).toBe(2);
+		expect(chat.body.messages.length).toBe(0);
+
+		await supertest(app)
+			.put(`/api/users/${user1.id}/sendmessage`)
+			.set('Authorization', `Bearer ${authToken}`)
+			.query({ message: 'message1', chatId: chatId });
+
+		const updatedChat = await authRequest(`/api/users/${user1.id}/chats/${chatId}`);
+		expect(updatedChat.body.messages.length).toBe(1);
+	});
 });

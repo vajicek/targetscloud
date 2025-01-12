@@ -216,7 +216,7 @@ function createFriendshipChat(user_id1: string, user_id2: string): any {
 	const timestamp = Date.now();
 	return Chat.create({
 		id: uuidv4(),
-		display_name: "xxx",
+		display_name: "Friendship chat",
 		participants: [{
 			id: user_id1,
 			timestamp: timestamp,
@@ -237,8 +237,12 @@ export async function friendshipRequest(req: any, res: any) {
 			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.PENDING, null);
 		} else if (req.query.action == 'accept') {
 			logger.info(`Accepting friendship request by user id=${req.query.id} to id=${req.params.id}`);
-			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.ACCEPTED, null);
-			await createFriendshipChat(req.params.id, req.query.id);
+			const chat = await createFriendshipChat(req.params.id, req.query.id);
+			await updateFriendships(
+				req.params.id,
+				req.query.id,
+				IFriendshipStatus.ACCEPTED,
+				{ id: chat.id });
 		} else if (req.query.action == 'reject') {
 			logger.info(`Rejecting friendship request by user id=${req.query.id} to id=${req.params.id}`);
 			await updateFriendships(req.params.id, req.query.id, IFriendshipStatus.REJECTED, null);
@@ -304,8 +308,7 @@ async function createGroup(creatorUserId: string, groupName: string, res: any) {
 					},
 				}
 			},
-		}
-	);
+		});
 
 	res.json([]);
 }
@@ -342,8 +345,7 @@ async function inviteUsers(userId: string, groupId: string, userIds: Array<strin
 						},
 					}
 				},
-			}
-		);
+			});
 	}
 
 	res.json([]);
@@ -368,8 +370,7 @@ async function kickUsers(userId: string, groupId: string, userIds: Array<string>
 		"$set": {
 			"status": IGroupMembershipStatus.KICKED,
 		}
-	}
-	);
+	});
 
 	// modify chat
 	await Chat.updateOne(
@@ -379,8 +380,7 @@ async function kickUsers(userId: string, groupId: string, userIds: Array<string>
 		$pull: {
 			participants: { id: { $in: userIds } }
 		}
-	}
-	);
+	});
 
 	res.json([]);
 }
@@ -410,8 +410,7 @@ async function destroyGroup(userId: string, groupId: string, res: any) {
 		"$set": {
 			"status": IGroupMembershipStatus.DESTROYED,
 		}
-	}
-	);
+	});
 
 	await Chat.updateOne(
 		{
@@ -420,8 +419,7 @@ async function destroyGroup(userId: string, groupId: string, res: any) {
 		"$set": {
 			participants: []
 		}
-	})
-		.exec();
+	});
 
 	res.json([]);
 }
@@ -445,8 +443,7 @@ async function acceptInvitation(userId: string, groupId: string, res: any) {
 		"$set": {
 			"status": IGroupMembershipStatus.ACCEPTED,
 		}
-	}
-	);
+	});
 
 	// modify chat
 	await Chat.updateOne(
@@ -460,8 +457,7 @@ async function acceptInvitation(userId: string, groupId: string, res: any) {
 				role: "user"
 			}
 		}
-	}
-	);
+	});
 
 	res.json([]);
 }
@@ -479,8 +475,7 @@ async function rejectInvitation(userId: string, groupId: string, res: any) {
 		"$set": {
 			"status": IGroupMembershipStatus.REJECTED,
 		}
-	}
-	);
+	});
 
 	res.json([]);
 }
@@ -510,13 +505,28 @@ export async function groupRequest(req: any, res: any) {
 }
 
 
-export function getChat(req: any, res: any) {
+export async function getChat(req: any, res: any) {
 	logger.info(`Getting chat chatId=${req.params.chatId} of user id=${req.params.id}`);
 	try {
+		const user = await User.findOne({ id: req.params.id })
+			.exec();
+		const chat = await Chat.findOne({ id: req.params.chatId })
+			.exec();
 
-		// TODO: get check with all messages
+		const isFriendChat = user?.friendships
+			.map(friendship => friendship.chat.id)
+			.includes(req.params.chatId);
+		const isGroupChat = user?.groups
+			.map(groupRef => groupRef.chat.id)
+			.includes(req.params.chatId);
 
-		res.json([]);
+		// TODO: update message delivery
+
+		if (!isFriendChat && !isGroupChat) {
+			res.json([]); // TODO: error messages
+		} else {
+			res.json(chat);
+		}
 	} catch (error: any) {
 		console.log(error);
 		res.status(500)
@@ -525,11 +535,26 @@ export function getChat(req: any, res: any) {
 }
 
 
-export function sendMessage(req: any, res: any) {
-	logger.info(`Sending message as user id=${req.params.id}`);
+export async function sendMessage(req: any, res: any) {
+	logger.info(`Sending message as user id=${req.params.id} to chat chatId=${req.query.chatId}`);
 	try {
 
-		// TODO: send message, notify members
+		// TODO: check permissions
+
+		await Chat.updateOne(
+			{
+				"id": req.query.chatId,
+			}, {
+			"$push": {
+				"messages": {
+					'id': uuidv4(),
+					'author': req.params.id,
+					'timestamp': Date.now(),
+					'text': req.query.message,
+					'delivered': []
+				}
+			}
+		});
 
 		res.json([]);
 	} catch (error: any) {
